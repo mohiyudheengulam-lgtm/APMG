@@ -1,0 +1,64 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python bytecode and tooling
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+ENV/
+
+# Test, coverage, and type-check artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local databases and vector stores
+*.db
+*.sqlite
+*.sqlite3
+*.faiss
+*.index
+*.pkl
+*.pickle
+/chroma/
+/chroma_db/
+/vector_db/
+/vectorstore/
+/pgdata/
+
+# Ollama and local model/testing artifacts
+.ollama/
+/ollama/
+/ollama_test/
+/ollama-tests/
+ollama-test-*
+*.gguf
+*.safetensors
+/model_cache/
+/test_outputs/
+/artifacts/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
