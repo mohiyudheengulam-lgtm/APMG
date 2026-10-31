@@ -169,7 +169,8 @@ def evaluate(tag: str, data: Path, index: Path) -> dict:
                 "tool_calls": n_calls, "invalid_tool_calls": r["invalid_tool_calls"], "cause": cause or "",
             })
         n = len(rs)
-        builds = [json.loads(b.read_text()) for b in (index / path).glob("*/build.json")]
+        run_pkgs = {r["package_id"] for r in rs}
+        builds = [json.loads(b.read_text()) for b in (index / path).glob("*/build.json") if b.parent.name in run_pkgs]
         micro = [sum(v[i] for v in flag_counts.values()) for i in range(3)]
         summary[path] = {
             "runs": n,
