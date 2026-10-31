@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+data/packages/*
+!data/packages/.gitkeep
+data/index/
+*.sqlite
+audit/

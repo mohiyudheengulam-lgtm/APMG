@@ -1,0 +1,27 @@
+[project]
+name = "agent-on-duty"
+version = "0.1.0"
+description = "APMG: fully local agentic AI for procurement three-way matching and MSA compliance auditing"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.7",
+    "pymupdf>=1.24,<2",
+    "ollama>=0.4",
+    "faiss-cpu>=1.8",
+    "numpy>=1.26",
+    "pyyaml>=6.0",
+    "streamlit>=1.38",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_on_duty"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
