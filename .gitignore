@@ -7,3 +7,6 @@ data/packages/*
 data/index/
 *.sqlite
 audit/
+results/
+data/uploads/
+.streamlit/secrets.toml
