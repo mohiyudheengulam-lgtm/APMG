@@ -1,0 +1,485 @@
+{
+  "package": "seed_01_packaging_fasteners",
+  "data_origin": "synthetic test data",
+  "currency": "EUR",
+  "expected_recommendation": "NO_DISCREPANCY",
+  "expected_flags": [],
+  "documents": {
+    "purchase_order": {
+      "file": "purchase_order.pdf",
+      "pages": 1,
+      "header": {
+        "po_number": "PO-2026-004817",
+        "po_date": "2026-09-08",
+        "msa_number": "MSA-LFT-PKV-2026-01",
+        "requested_delivery_date": "2026-09-18",
+        "issuer": {
+          "name": "Lorvaten Fördertechnik GmbH",
+          "vat_id": "DE318274905"
+        },
+        "recipient": {
+          "name": "Pakvero Industriebedarf GmbH",
+          "vat_id": "DE294117638"
+        }
+      },
+      "line_items": [
+        {
+          "position": 1,
+          "item_no": "PV-KS-4030",
+          "description": "Corrugated shipping carton, double wall BC flute, 400 x 300 x 300 mm",
+          "unit": "pcs",
+          "quantity": 1200,
+          "unit_price": "1.38",
+          "line_total": "1656.00"
+        },
+        {
+          "position": 2,
+          "item_no": "PV-SF-500",
+          "description": "Machine stretch film 500 mm x 1,500 m, 23 µm, transparent",
+          "unit": "roll",
+          "quantity": 48,
+          "unit_price": "14.90",
+          "line_total": "715.20"
+        },
+        {
+          "position": 3,
+          "item_no": "PV-KB-50",
+          "description": "PP packaging tape 50 mm x 66 m, brown, low-noise",
+          "unit": "roll",
+          "quantity": 240,
+          "unit_price": "1.65",
+          "line_total": "396.00"
+        },
+        {
+          "position": 4,
+          "item_no": "PV-KS-35",
+          "description": "PE edge protector 35 x 35 x 3 mm, length 1,200 mm",
+          "unit": "pcs",
+          "quantity": 600,
+          "unit_price": "0.42",
+          "line_total": "252.00"
+        },
+        {
+          "position": 5,
+          "item_no": "BF-SK-M8x30",
+          "description": "Hex head screw DIN 933 M8 x 30, 8.8, zinc plated (box of 200)",
+          "unit": "box",
+          "quantity": 25,
+          "unit_price": "18.40",
+          "line_total": "460.00"
+        },
+        {
+          "position": 6,
+          "item_no": "BF-MU-M8",
+          "description": "Hex nut DIN 934 M8, class 8, zinc plated (box of 500)",
+          "unit": "box",
+          "quantity": 10,
+          "unit_price": "12.75",
+          "line_total": "127.50"
+        },
+        {
+          "position": 7,
+          "item_no": "BF-US-8.4",
+          "description": "Flat washer DIN 125-A 8.4, steel, zinc plated (box of 1,000)",
+          "unit": "box",
+          "quantity": 8,
+          "unit_price": "9.80",
+          "line_total": "78.40"
+        }
+      ],
+      "totals": {
+        "net_total": "3685.10",
+        "vat_rate_percent": "19.00",
+        "vat_amount": "700.17",
+        "gross_total": "4385.27"
+      }
+    },
+    "delivery_note": {
+      "file": "delivery_note.pdf",
+      "pages": 1,
+      "header": {
+        "delivery_note_number": "LS-26-09-3321",
+        "delivery_date": "2026-09-17",
+        "po_number": "PO-2026-004817",
+        "issuer": {
+          "name": "Pakvero Industriebedarf GmbH",
+          "vat_id": "DE294117638"
+        },
+        "recipient": {
+          "name": "Lorvaten Fördertechnik GmbH",
+          "vat_id": "DE318274905"
+        },
+        "packages": "3 pallets"
+      },
+      "line_items": [
+        {
+          "item_no": "PV-KS-4030",
+          "unit": "pcs",
+          "quantity_ordered": 1200,
+          "quantity_delivered": 1200
+        },
+        {
+          "item_no": "PV-SF-500",
+          "unit": "roll",
+          "quantity_ordered": 48,
+          "quantity_delivered": 48
+        },
+        {
+          "item_no": "PV-KB-50",
+          "unit": "roll",
+          "quantity_ordered": 240,
+          "quantity_delivered": 240
+        },
+        {
+          "item_no": "PV-KS-35",
+          "unit": "pcs",
+          "quantity_ordered": 600,
+          "quantity_delivered": 600
+        },
+        {
+          "item_no": "BF-SK-M8x30",
+          "unit": "box",
+          "quantity_ordered": 25,
+          "quantity_delivered": 25
+        },
+        {
+          "item_no": "BF-MU-M8",
+          "unit": "box",
+          "quantity_ordered": 10,
+          "quantity_delivered": 10
+        },
+        {
+          "item_no": "BF-US-8.4",
+          "unit": "box",
+          "quantity_ordered": 8,
+          "quantity_delivered": 8
+        }
+      ]
+    },
+    "goods_receipt": {
+      "file": "goods_receipt.pdf",
+      "pages": 1,
+      "header": {
+        "goods_receipt_number": "WE-2026-01562",
+        "receipt_date": "2026-09-17",
+        "po_number": "PO-2026-004817",
+        "delivery_note_number": "LS-26-09-3321",
+        "receiving_clerk": "Jonas Brüggemann",
+        "issuer": {
+          "name": "Lorvaten Fördertechnik GmbH",
+          "vat_id": "DE318274905"
+        },
+        "supplier": {
+          "name": "Pakvero Industriebedarf GmbH",
+          "vat_id": "DE294117638"
+        }
+      },
+      "line_items": [
+        {
+          "item_no": "PV-KS-4030",
+          "unit": "pcs",
+          "quantity_ordered": 1200,
+          "quantity_received": 1200
+        },
+        {
+          "item_no": "PV-SF-500",
+          "unit": "roll",
+          "quantity_ordered": 48,
+          "quantity_received": 48
+        },
+        {
+          "item_no": "PV-KB-50",
+          "unit": "roll",
+          "quantity_ordered": 240,
+          "quantity_received": 240
+        },
+        {
+          "item_no": "PV-KS-35",
+          "unit": "pcs",
+          "quantity_ordered": 600,
+          "quantity_received": 600
+        },
+        {
+          "item_no": "BF-SK-M8x30",
+          "unit": "box",
+          "quantity_ordered": 25,
+          "quantity_received": 25
+        },
+        {
+          "item_no": "BF-MU-M8",
+          "unit": "box",
+          "quantity_ordered": 10,
+          "quantity_received": 10
+        },
+        {
+          "item_no": "BF-US-8.4",
+          "unit": "box",
+          "quantity_ordered": 8,
+          "quantity_received": 8
+        }
+      ]
+    },
+    "invoice": {
+      "file": "invoice.pdf",
+      "pages": 1,
+      "header": {
+        "invoice_number": "RE-2026-10457",
+        "invoice_date": "2026-09-18",
+        "due_date": "2026-10-18",
+        "discount_deadline": "2026-10-02",
+        "po_number": "PO-2026-004817",
+        "delivery_note_number": "LS-26-09-3321",
+        "msa_number": "MSA-LFT-PKV-2026-01",
+        "issuer": {
+          "name": "Pakvero Industriebedarf GmbH",
+          "vat_id": "DE294117638"
+        },
+        "recipient": {
+          "name": "Lorvaten Fördertechnik GmbH",
+          "vat_id": "DE318274905"
+        },
+        "supplier_iban": "DE86200694310738815200"
+      },
+      "line_items": [
+        {
+          "position": 1,
+          "item_no": "PV-KS-4030",
+          "description": "Corrugated shipping carton, double wall BC flute, 400 x 300 x 300 mm",
+          "unit": "pcs",
+          "quantity": 1200,
+          "unit_price": "1.38",
+          "line_total": "1656.00"
+        },
+        {
+          "position": 2,
+          "item_no": "PV-SF-500",
+          "description": "Machine stretch film 500 mm x 1,500 m, 23 µm, transparent",
+          "unit": "roll",
+          "quantity": 48,
+          "unit_price": "14.90",
+          "line_total": "715.20"
+        },
+        {
+          "position": 3,
+          "item_no": "PV-KB-50",
+          "description": "PP packaging tape 50 mm x 66 m, brown, low-noise",
+          "unit": "roll",
+          "quantity": 240,
+          "unit_price": "1.65",
+          "line_total": "396.00"
+        },
+        {
+          "position": 4,
+          "item_no": "PV-KS-35",
+          "description": "PE edge protector 35 x 35 x 3 mm, length 1,200 mm",
+          "unit": "pcs",
+          "quantity": 600,
+          "unit_price": "0.42",
+          "line_total": "252.00"
+        },
+        {
+          "position": 5,
+          "item_no": "BF-SK-M8x30",
+          "description": "Hex head screw DIN 933 M8 x 30, 8.8, zinc plated (box of 200)",
+          "unit": "box",
+          "quantity": 25,
+          "unit_price": "18.40",
+          "line_total": "460.00"
+        },
+        {
+          "position": 6,
+          "item_no": "BF-MU-M8",
+          "description": "Hex nut DIN 934 M8, class 8, zinc plated (box of 500)",
+          "unit": "box",
+          "quantity": 10,
+          "unit_price": "12.75",
+          "line_total": "127.50"
+        },
+        {
+          "position": 7,
+          "item_no": "BF-US-8.4",
+          "description": "Flat washer DIN 125-A 8.4, steel, zinc plated (box of 1,000)",
+          "unit": "box",
+          "quantity": 8,
+          "unit_price": "9.80",
+          "line_total": "78.40"
+        }
+      ],
+      "surcharges": [],
+      "totals": {
+        "net_total": "3685.10",
+        "vat_rate_percent": "19.00",
+        "vat_amount": "700.17",
+        "gross_total": "4385.27",
+        "early_payment_discount_percent": "2.00",
+        "early_payment_discount_amount": "87.71",
+        "amount_payable_within_discount_period": "4297.56"
+      }
+    },
+    "msa": {
+      "file": "msa.pdf",
+      "pages": 15,
+      "number": "MSA-LFT-PKV-2026-01",
+      "signing_date": "2026-01-12"
+    },
+    "purchasing_guideline": {
+      "file": "purchasing_guideline.pdf",
+      "pages": 3
+    }
+  },
+  "calculations": {
+    "line_totals": [
+      {
+        "item_no": "PV-KS-4030",
+        "formula": "1200 x 1.38",
+        "line_total": "1656.00"
+      },
+      {
+        "item_no": "PV-SF-500",
+        "formula": "48 x 14.90",
+        "line_total": "715.20"
+      },
+      {
+        "item_no": "PV-KB-50",
+        "formula": "240 x 1.65",
+        "line_total": "396.00"
+      },
+      {
+        "item_no": "PV-KS-35",
+        "formula": "600 x 0.42",
+        "line_total": "252.00"
+      },
+      {
+        "item_no": "BF-SK-M8x30",
+        "formula": "25 x 18.40",
+        "line_total": "460.00"
+      },
+      {
+        "item_no": "BF-MU-M8",
+        "formula": "10 x 12.75",
+        "line_total": "127.50"
+      },
+      {
+        "item_no": "BF-US-8.4",
+        "formula": "8 x 9.80",
+        "line_total": "78.40"
+      }
+    ],
+    "net_total": "3685.10",
+    "vat": {
+      "rate_percent": "19.00",
+      "formula": "3685.10 x 0.19 (ROUND_HALF_UP)",
+      "amount": "700.17"
+    },
+    "gross_total": "4385.27",
+    "early_payment_discount": {
+      "percent": "2.00",
+      "base": "gross_total",
+      "amount": "87.71",
+      "payable_if_paid_by_deadline": "4297.56"
+    },
+    "three_way_match": [
+      {
+        "item_no": "PV-KS-4030",
+        "po_quantity": 1200,
+        "received_quantity": 1200,
+        "invoiced_quantity": 1200,
+        "po_unit_price": "1.38",
+        "msa_unit_price": "1.38",
+        "invoiced_unit_price": "1.38",
+        "match": true
+      },
+      {
+        "item_no": "PV-SF-500",
+        "po_quantity": 48,
+        "received_quantity": 48,
+        "invoiced_quantity": 48,
+        "po_unit_price": "14.90",
+        "msa_unit_price": "14.90",
+        "invoiced_unit_price": "14.90",
+        "match": true
+      },
+      {
+        "item_no": "PV-KB-50",
+        "po_quantity": 240,
+        "received_quantity": 240,
+        "invoiced_quantity": 240,
+        "po_unit_price": "1.65",
+        "msa_unit_price": "1.65",
+        "invoiced_unit_price": "1.65",
+        "match": true
+      },
+      {
+        "item_no": "PV-KS-35",
+        "po_quantity": 600,
+        "received_quantity": 600,
+        "invoiced_quantity": 600,
+        "po_unit_price": "0.42",
+        "msa_unit_price": "0.42",
+        "invoiced_unit_price": "0.42",
+        "match": true
+      },
+      {
+        "item_no": "BF-SK-M8x30",
+        "po_quantity": 25,
+        "received_quantity": 25,
+        "invoiced_quantity": 25,
+        "po_unit_price": "18.40",
+        "msa_unit_price": "18.40",
+        "invoiced_unit_price": "18.40",
+        "match": true
+      },
+      {
+        "item_no": "BF-MU-M8",
+        "po_quantity": 10,
+        "received_quantity": 10,
+        "invoiced_quantity": 10,
+        "po_unit_price": "12.75",
+        "msa_unit_price": "12.75",
+        "invoiced_unit_price": "12.75",
+        "match": true
+      },
+      {
+        "item_no": "BF-US-8.4",
+        "po_quantity": 8,
+        "received_quantity": 8,
+        "invoiced_quantity": 8,
+        "po_unit_price": "9.80",
+        "msa_unit_price": "9.80",
+        "invoiced_unit_price": "9.80",
+        "match": true
+      }
+    ],
+    "surcharges_total": "0.00"
+  },
+  "msa_clauses": {
+    "price_lock": {
+      "clause": "8.3",
+      "clause_title": "8. Prices and Price List",
+      "page": 4,
+      "msa_page_count": 15,
+      "summary": "Prices fixed for 12 months until 2027-01-14"
+    },
+    "surcharge": {
+      "clause": "27.2",
+      "clause_title": "27. Cost Developments, Surcharges and Additional Charges",
+      "page": 9,
+      "msa_page_count": 15,
+      "summary": "No surcharges of any kind (incl. fuel/energy) unless pre-approved in writing by Buyer's Purchasing Department"
+    },
+    "payment_terms": {
+      "clause": "19.1",
+      "clause_title": "19. Payment Terms and Early-Payment Discount",
+      "page": 7,
+      "msa_page_count": 15,
+      "summary": "30 days net; 2 % discount within 14 days"
+    },
+    "late_delivery_penalty": {
+      "clause": "14.3",
+      "clause_title": "14. Delivery Dates, Delays and Late-Delivery Penalty",
+      "page": 6,
+      "msa_page_count": 15,
+      "summary": "0.5 % per commenced calendar day, max 5 % of delayed net order value"
+    }
+  }
+}

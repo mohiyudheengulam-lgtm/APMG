@@ -1,0 +1,349 @@
+{
+  "package_name": "seed_02_electronic_components",
+  "description": "Clean package: electronic components, all documents consistent.",
+  "currency": "EUR",
+  "vat_rate": "19",
+  "buyer": {
+    "name": "Quentrion Elektronik GmbH",
+    "short_name": "Quentrion",
+    "address": {
+      "street": "Ellerbrockweg 9",
+      "postal_code": "50829",
+      "city": "Köln",
+      "country": "Germany"
+    },
+    "vat_id": "DE271609384",
+    "registration": {
+      "court": "Amtsgericht Köln",
+      "number": "HRB 109452"
+    },
+    "managing_directors": [
+      "Markus Vellinger",
+      "Dr. Anja Klee"
+    ],
+    "phone": "+49 221 4710-500",
+    "email": "procurement@quentrion-elektronik.de",
+    "website": "www.quentrion-elektronik.de",
+    "contact": {
+      "name": "Daniel Ostendorf",
+      "role": "Commodity Buyer Electronics, Strategic Procurement",
+      "phone": "+49 221 4710-537",
+      "email": "d.ostendorf@quentrion-elektronik.de"
+    },
+    "accounts_payable": {
+      "name": "Ingrid Sauerwein",
+      "email": "invoices@quentrion-elektronik.de"
+    },
+    "bank": {
+      "bank_name": "Domstadt Kreditbank AG",
+      "iban": "DE51370618772093318405",
+      "bic": "DSKRDEK1XXX"
+    },
+    "warehouse": {
+      "name": "Central Warehouse, Hall 4 – Goods-In",
+      "street": "Ellerbrockweg 13",
+      "postal_code": "50829",
+      "city": "Köln",
+      "receiving_hours": "06:30 and 14:30"
+    },
+    "supplier_number_for_supplier": "300417"
+  },
+  "supplier": {
+    "name": "Sarvelin Components GmbH",
+    "short_name": "Sarvelin",
+    "address": {
+      "street": "Lindwurmring 30",
+      "postal_code": "60528",
+      "city": "Frankfurt am Main",
+      "country": "Germany"
+    },
+    "vat_id": "DE305882471",
+    "tax_number": "045 228 61094",
+    "registration": {
+      "court": "Amtsgericht Frankfurt am Main",
+      "number": "HRB 127604"
+    },
+    "managing_directors": [
+      "Florian Haberkamp",
+      "Nadine Esch"
+    ],
+    "phone": "+49 69 90009-400",
+    "email": "orders@sarvelin-components.de",
+    "website": "www.sarvelin-components.de",
+    "contact": {
+      "name": "Tobias Reinhold",
+      "role": "Account Manager Industrial",
+      "phone": "+49 69 90009-428",
+      "email": "t.reinhold@sarvelin-components.de"
+    },
+    "dispatch_contact": "Merve Yildiz",
+    "bank": {
+      "bank_name": "Mainfeld Privatbank AG",
+      "iban": "DE30500619220071458830",
+      "bic": "MFPBDEFFXXX"
+    },
+    "customer_number_for_buyer": "D-0028815"
+  },
+  "documents": {
+    "msa": {
+      "number": "RV-QE-SC/2026/003",
+      "signing_date": "2026-02-24",
+      "effective_date": "2026-03-01"
+    },
+    "purchase_order": {
+      "number": "4500021873",
+      "date": "2026-10-12",
+      "requested_delivery_date": "2026-10-22"
+    },
+    "delivery_note": {
+      "number": "DN/2610/00487",
+      "date": "2026-10-21",
+      "packages": "4 cartons",
+      "gross_weight_kg": "38.6"
+    },
+    "goods_receipt": {
+      "number": "5000184227",
+      "date": "2026-10-22",
+      "receiving_clerk": "Svenja Kowalczyk",
+      "storage_location": "H4-ESD"
+    },
+    "invoice": {
+      "number": "IN26-118904",
+      "date": "2026-10-23",
+      "due_date": "2026-12-07",
+      "discount_deadline": "2026-11-02"
+    }
+  },
+  "msa_terms": {
+    "payment_terms": {
+      "net_days": 45,
+      "early_payment_discount_percent": "3",
+      "discount_days": 10,
+      "discount_base": "gross invoice amount"
+    },
+    "price_lock": {
+      "months": 12,
+      "start_date": "2026-03-01",
+      "end_date": "2027-02-28"
+    },
+    "surcharge_rule": "Surcharges of any kind (incl. fuel/energy surcharges) are not permitted unless approved in advance and in writing by the Buyer's Purchasing Department for the specific order.",
+    "late_delivery_penalty": {
+      "rate_percent": "0.3",
+      "per": "each commenced Business Day",
+      "cap_percent": "6",
+      "basis": "net order value of the delayed goods",
+      "rate_text": "0.3 %",
+      "cap_text": "6 %"
+    },
+    "incoterm": "DAP",
+    "lead_time_business_days": 8,
+    "warranty_months": 36,
+    "governing_law": "Germany (CISG excluded)",
+    "jurisdiction": "Cologne",
+    "initial_term": "two (2) years",
+    "termination_notice": "three (3) months’"
+  },
+  "price_list": [
+    {
+      "item_no": "SC-C0603-104X50",
+      "description": "Multilayer ceramic capacitor 100 nF, 50 V, X7R, case 0603, reel of 4,000",
+      "unit": "reel",
+      "unit_price": "9.60"
+    },
+    {
+      "item_no": "SC-R0603-10K0F",
+      "description": "Thick-film chip resistor 10 kOhm, 1 %, 0.1 W, case 0603, reel of 5,000",
+      "unit": "reel",
+      "unit_price": "4.25"
+    },
+    {
+      "item_no": "SC-MCU-M4-512L64",
+      "description": "32-bit microcontroller, M4 core, 512 KB flash, 128 KB RAM, LQFP-64",
+      "unit": "pcs",
+      "unit_price": "4.87"
+    },
+    {
+      "item_no": "SC-LDO-33-SOT223",
+      "description": "LDO voltage regulator 3.3 V, 500 mA, SOT-223",
+      "unit": "pcs",
+      "unit_price": "0.32"
+    },
+    {
+      "item_no": "SC-HDR-2X10-254",
+      "description": "Pin header 2 x 10 pins, pitch 2.54 mm, THT, gold-plated",
+      "unit": "pcs",
+      "unit_price": "0.21"
+    },
+    {
+      "item_no": "SC-USBC-16SMT",
+      "description": "USB Type-C receptacle, 16 pins, SMT, mid-mount",
+      "unit": "pcs",
+      "unit_price": "0.58"
+    },
+    {
+      "item_no": "SC-XTL-16M-3225",
+      "description": "Quartz crystal 16.000 MHz, 12 pF load, 3.2 x 2.5 mm SMD",
+      "unit": "pcs",
+      "unit_price": "0.27"
+    },
+    {
+      "item_no": "SC-ECAP-470U25",
+      "description": "Aluminium electrolytic capacitor 470 µF, 25 V, 105 °C, 10 x 12.5 mm",
+      "unit": "pcs",
+      "unit_price": "0.14"
+    },
+    {
+      "item_no": "SC-C0402-105X16",
+      "description": "Multilayer ceramic capacitor 1 µF, 16 V, X5R, case 0402, reel of 10,000",
+      "unit": "reel",
+      "unit_price": "7.90"
+    },
+    {
+      "item_no": "SC-TVS-SMBJ24A",
+      "description": "TVS diode 24 V, 600 W, unidirectional, SMB package",
+      "unit": "pcs",
+      "unit_price": "0.19"
+    },
+    {
+      "item_no": "SC-FB-0805-600R",
+      "description": "Ferrite bead 600 Ohm at 100 MHz, 1 A, case 0805, reel of 4,000",
+      "unit": "reel",
+      "unit_price": "11.40"
+    }
+  ],
+  "guideline": {
+    "number": "QE-PROC-POL-011",
+    "version": "2.0",
+    "valid_from": "2026-04-01",
+    "owner": "Head of Strategic Procurement",
+    "approved_by": "Markus Vellinger, CEO, and Dr. Anja Klee, CFO",
+    "payment_runs": "every Wednesday",
+    "thresholds": [
+      {
+        "range": "up to 2,500.00",
+        "approver": "Team lead of the requesting cost centre",
+        "form": "Workflow approval"
+      },
+      {
+        "range": "2,500.01 – 15,000.00",
+        "approver": "Head of Strategic Procurement",
+        "form": "Workflow approval"
+      },
+      {
+        "range": "15,000.01 – 75,000.00",
+        "approver": "Head of Strategic Procurement and CFO",
+        "form": "Workflow, two signatures"
+      },
+      {
+        "range": "above 75,000.00",
+        "approver": "Both managing directors",
+        "form": "Board memo + workflow"
+      }
+    ],
+    "roles": [
+      [
+        "Strategic Procurement",
+        "Owns supplier framework agreements and price lists, issues purchase orders, is the only function entitled to approve surcharges in writing, clarifies price discrepancies."
+      ],
+      [
+        "Goods-In / Central Warehouse",
+        "Counts and inspects deliveries (incl. ESD and moisture-sensitive packaging), posts goods receipts referencing the delivery note, documents shortfalls."
+      ],
+      [
+        "Accounts Payable",
+        "Registers invoices, executes the three-way match and recalculation, blocks invoices with discrepancies and routes them to Strategic Procurement."
+      ],
+      [
+        "Cost centre approver",
+        "Approves invoices within the thresholds of section 2 once the three-way match is clean."
+      ],
+      [
+        "Head of Strategic Procurement",
+        "Decides on escalated discrepancies; documents any exception to this policy in writing."
+      ]
+    ]
+  },
+  "line_items": [
+    {
+      "position": 10,
+      "item_no": "SC-C0603-104X50",
+      "description": "Multilayer ceramic capacitor 100 nF, 50 V, X7R, case 0603, reel of 4,000",
+      "unit": "reel",
+      "quantity": 20,
+      "unit_price": "9.60",
+      "line_total": "192.00"
+    },
+    {
+      "position": 20,
+      "item_no": "SC-R0603-10K0F",
+      "description": "Thick-film chip resistor 10 kOhm, 1 %, 0.1 W, case 0603, reel of 5,000",
+      "unit": "reel",
+      "quantity": 30,
+      "unit_price": "4.25",
+      "line_total": "127.50"
+    },
+    {
+      "position": 30,
+      "item_no": "SC-MCU-M4-512L64",
+      "description": "32-bit microcontroller, M4 core, 512 KB flash, 128 KB RAM, LQFP-64",
+      "unit": "pcs",
+      "quantity": 1500,
+      "unit_price": "4.87",
+      "line_total": "7305.00"
+    },
+    {
+      "position": 40,
+      "item_no": "SC-LDO-33-SOT223",
+      "description": "LDO voltage regulator 3.3 V, 500 mA, SOT-223",
+      "unit": "pcs",
+      "quantity": 3000,
+      "unit_price": "0.32",
+      "line_total": "960.00"
+    },
+    {
+      "position": 50,
+      "item_no": "SC-HDR-2X10-254",
+      "description": "Pin header 2 x 10 pins, pitch 2.54 mm, THT, gold-plated",
+      "unit": "pcs",
+      "quantity": 2000,
+      "unit_price": "0.21",
+      "line_total": "420.00"
+    },
+    {
+      "position": 60,
+      "item_no": "SC-USBC-16SMT",
+      "description": "USB Type-C receptacle, 16 pins, SMT, mid-mount",
+      "unit": "pcs",
+      "quantity": 1500,
+      "unit_price": "0.58",
+      "line_total": "870.00"
+    },
+    {
+      "position": 70,
+      "item_no": "SC-XTL-16M-3225",
+      "description": "Quartz crystal 16.000 MHz, 12 pF load, 3.2 x 2.5 mm SMD",
+      "unit": "pcs",
+      "quantity": 1500,
+      "unit_price": "0.27",
+      "line_total": "405.00"
+    },
+    {
+      "position": 80,
+      "item_no": "SC-ECAP-470U25",
+      "description": "Aluminium electrolytic capacitor 470 µF, 25 V, 105 °C, 10 x 12.5 mm",
+      "unit": "pcs",
+      "quantity": 2500,
+      "unit_price": "0.14",
+      "line_total": "350.00"
+    }
+  ],
+  "totals": {
+    "net_total": "10629.50",
+    "vat_rate_percent": "19.00",
+    "vat_amount": "2019.61",
+    "gross_total": "12649.11",
+    "early_payment_discount_percent": "3.00",
+    "early_payment_discount_amount": "379.47",
+    "amount_payable_within_discount_period": "12269.64"
+  }
+}
