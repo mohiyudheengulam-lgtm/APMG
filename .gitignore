@@ -10,3 +10,4 @@ audit/
 results/
 data/uploads/
 .streamlit/secrets.toml
+.DS_Store
