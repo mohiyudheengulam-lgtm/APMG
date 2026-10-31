@@ -29,7 +29,9 @@ THINK = False
 MAX_STEPS = 10
 
 SYSTEM_PROMPT = """You are an accounts-payable verification agent. Check one procurement package.
-The package should contain an invoice, a purchase order (PO), a goods receipt, and a Master Service Agreement (MSA).
+A package normally contains: an invoice, a purchase order (PO), a delivery note, a goods receipt (the buyer's
+record of the quantities actually received), the master supply agreement with the supplier (MSA), and the buyer's
+purchasing guideline.
 
 You have at most 10 turns, so call several tools per turn: retrieve all documents in one turn,
 submit all documents in one turn together with run_checks.
@@ -37,13 +39,17 @@ submit all documents in one turn together with run_checks.
 Procedure:
 1. Find the invoice, the purchase order and the goods receipt with the retrieval tool.
 2. Read each document BEFORE submitting it. Then call submit_document with the exact values you read:
-   the source PDF filename shown with the retrieved text (for example ACME-INV-123.pdf), and every line item (item_no, quantity, unit_price, line_total; the goods receipt has only item_no and quantity).
-   For the invoice also submit any additional charges (surcharges).
+   the source PDF filename shown with the retrieved text, and every line item (item_no, quantity, unit_price,
+   line_total). For the goods receipt submit item_no and the quantity RECEIVED.
+   Invoice lines without an item number that are additional charges (e.g. freight, fuel, energy, handling or
+   small-quantity surcharges or fees) are surcharges: submit them under surcharges, not as line items.
+   VAT is a tax, not a surcharge.
    If a document cannot be found, call report_missing instead. Never invent values.
 3. Call run_checks. It computes all price, quantity and line-total differences. Do not do arithmetic yourself.
 4. If the invoice has a surcharge, find the MSA clause about surcharges, read it, and call check_surcharge
-   with the clause's source PDF filename and page number. Set allowed=true only if the clause explicitly
-   permits this kind of surcharge and its amount without further approval; otherwise allowed=false.
+   with the clause's source PDF filename and the page number where the clause text appears. Set allowed=true
+   only if the clause explicitly permits this kind of surcharge and its amount without further approval;
+   otherwise allowed=false.
 5. Call finish.
 Submitting a document or clause you have not retrieved yet is rejected. Answer only with tool calls."""
 
@@ -133,7 +139,8 @@ class PathBTools:
     def call(self, name: str, args: dict) -> tuple[str, set[tuple[str, int]]]:
         path = ReadArgs(**args).path
         text, meta = self.bundle.read(path), self.bundle.meta(path)
-        seen = {(meta["source_document"], int(meta["page"]))} if "page" in meta else set()
+        pages = meta.get("pages") or ([meta["page"]] if "page" in meta else [])
+        seen = {(meta["source_document"], int(pg)) for pg in pages} if "source_document" in meta else set()
         return text, seen
 
 

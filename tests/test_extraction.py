@@ -1,12 +1,17 @@
-"""Extraction must reproduce every ground-truth field of the generated benchmark exactly."""
+"""Extraction must reproduce every ground-truth field of the generated benchmark, across both seed layouts."""
 
 import json
+import sys
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
 
-from agent_on_duty.benchmark.generator import generate
-from agent_on_duty.extraction.extract import DocType, extract_package
+from agent_on_duty.extraction.extract import DocType, extract_package, parse_number
+from agent_on_duty.retrieval.path_b import _msa_sections
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts" / "seeds"))
+from variants import generate  # noqa: E402
 
 
 @pytest.fixture(scope="module")
@@ -16,9 +21,21 @@ def packages(tmp_path_factory):
     return sorted(p for p in out.iterdir() if p.is_dir())
 
 
-def _lines(record):
-    return [{k: str(v) for k, v in ln.model_dump(include={"item_no", "quantity", "unit_price", "line_total"}).items()
-             if v is not None} for ln in record.lines]
+def test_german_numbers():
+    assert parse_number("1.234,56") == Decimal("1234.56")
+    assert parse_number("1.200") == Decimal("1200")
+    assert parse_number("0,42") == Decimal("0.42")
+    assert parse_number("-3") == Decimal("-3")
+    assert parse_number("4,000 V") is None
+
+
+def test_document_types(packages):
+    for pdir in packages:
+        gt = json.loads((pdir / "ground_truth.json").read_text())
+        ex = extract_package(pdir)
+        got = {d.filename: d.doc_type.value for d in ex.documents}
+        want = {f: ("guideline" if k == "purchasing_guideline" else k) for k, f in gt["documents"].items()}
+        assert got == want, pdir.name
 
 
 def test_fields_match_ground_truth(packages):
@@ -26,19 +43,30 @@ def test_fields_match_ground_truth(packages):
         gt = json.loads((pdir / "ground_truth.json").read_text())
         ex = extract_package(pdir)
         for doc_type, expected in gt["fields"].items():
-            doc = ex.get(DocType(doc_type))
-            assert doc is not None, (pdir.name, doc_type)
-            assert _lines(doc.record) == expected["lines"], (pdir.name, doc_type)
+            rec = ex.get(DocType(doc_type)).record
+            got = [{k: str(getattr(ln, k)) for k in ("item_no", "quantity", "unit_price", "line_total") if getattr(ln, k) is not None}
+                   for ln in rec.lines]
+            want = [{k: str(Decimal(v)) if k != "item_no" else v for k, v in ln.items()} for ln in expected["lines"]]
+            assert got == want, (pdir.name, doc_type)
         inv = ex.get(DocType.INVOICE).record
-        assert [{"label": s.label, "amount": str(s.amount)} for s in inv.surcharges] == \
-            [{"label": s["label"], "amount": s["amount"]} for s in gt["fields"]["invoice"]["surcharges"]]
+        assert [(s.label, s.amount) for s in inv.surcharges] == \
+            [(s["label"], Decimal(s["amount"])) for s in gt["fields"]["invoice"]["surcharges"]], pdir.name
         assert str(inv.tax_rate) == gt["fields"]["invoice"]["tax_rate"]
-        for missing in gt["missing_documents"]:
-            assert ex.get(DocType(missing)) is None
+        dn = ex.get(DocType.DELIVERY_NOTE).record
+        assert [(ln.item_no, str(ln.quantity)) for ln in dn.lines] == \
+            [(ln["item_no"], ln["quantity"]) for ln in gt["extra_fields"]["delivery_note"]["lines"]], pdir.name
 
 
-def test_msa_pages(packages):
-    ex = extract_package(packages[0])
-    msa = ex.get(DocType.MSA)
-    assert msa.record is None and len(msa.pages) >= 14
-    assert "Surcharges" in msa.pages[13].text
+def test_msa_sections_cite_clause_pages(packages):
+    for pdir in (packages[0], packages[-1]):  # one package per seed
+        gt = json.loads((pdir / "ground_truth.json").read_text())
+        msa = extract_package(pdir).get(DocType.MSA)
+        sections = _msa_sections(msa)
+        assert len(sections) > 30
+        for key in ("surcharge", "price_lock", "payment_terms", "late_delivery_penalty"):
+            clause = gt["msa_clauses"][key]
+            number = clause["clause"].split("(")[0].split(".")[0].strip()  # "27.2" -> "27", "§ 28 (2)" -> "§ 28"
+            sec = next(s for s in sections if s["clause_id"] == number)
+            text = "\n".join(sec["lines"])
+            marker = text.rfind("[page", 0, text.find(clause["clause"].split(" (")[-1].rstrip(")") if "(" in clause["clause"] else clause["clause"]))
+            assert f"[page {clause['page']}]" == text[marker:text.index("]", marker) + 1], (key, clause)

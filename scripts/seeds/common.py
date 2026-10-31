@@ -321,3 +321,48 @@ def find_clause_page(path: Path, label: str, opening: str) -> dict:
 
 def dump_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+# --------------------------------------------------------------------------- per-document views
+def doc_view(m: dict) -> dict:
+    """Per-document line items and invoice totals.
+
+    Clean seeds use the shared master line items for every document. Benchmark variants
+    (src/agent_on_duty/benchmark) put overrides in m["variant"]: delivered / received / invoiced
+    quantities, invoiced prices and line totals, and invoice surcharges.
+    """
+    v = m.get("variant", {})
+    lines = m["line_items"]
+    t = m["totals"]
+
+    def over(key: str, li: dict, field: str, default):
+        return v.get(key, {}).get(li["item_no"], {}).get(field, default)
+
+    po = lines
+    dn, gr, inv = [], [], []
+    for li in lines:
+        ordered = li["quantity"]
+        delivered = over("delivery_note", li, "quantity", ordered)
+        received = over("goods_receipt", li, "quantity", delivered)
+        dn.append({**li, "qty_ordered": ordered, "qty_delivered": delivered})
+        gr.append({**li, "qty_ordered": ordered, "qty_delivered": delivered, "qty_received": received})
+        qty = over("invoice", li, "quantity", ordered)
+        price = D(over("invoice", li, "unit_price", li["unit_price"]))
+        total = over("invoice", li, "line_total", s2(q2(D(qty) * price)))
+        inv.append({**li, "quantity": qty, "unit_price": s2(price), "line_total": total})
+    surcharges = [{"label": s["label"], "amount": s2(D(s["amount"]))} for s in v.get("invoice_surcharges", [])]
+    if not v:
+        inv_totals = t
+    else:
+        net = q2(sum((D(li["line_total"]) for li in inv), Decimal(0)) + sum((D(s["amount"]) for s in surcharges), Decimal(0)))
+        vat = q2(net * D(t["vat_rate_percent"]) / 100)
+        gross = q2(net + vat)
+        disc = q2(gross * D(t["early_payment_discount_percent"]) / 100)
+        inv_totals = {**t, "net_total": s2(net), "vat_amount": s2(vat), "gross_total": s2(gross),
+                      "early_payment_discount_amount": s2(disc), "amount_payable_within_discount_period": s2(gross - disc)}
+    short_dn = [li for li in dn if li["qty_delivered"] < li["qty_ordered"]]
+    short_gr = [li for li in gr if li["qty_received"] < li["qty_delivered"]]
+    return {"purchase_order": po, "delivery_note": dn, "goods_receipt": gr, "invoice": inv,
+            "invoice_surcharges": surcharges, "invoice_totals": inv_totals,
+            "dn_complete": not short_dn, "gr_clean": not short_gr and not short_dn,
+            "gr_short_items": [li["item_no"] for li in short_gr]}

@@ -13,7 +13,7 @@ from datetime import date, timedelta
 import pymupdf
 
 from common import (
-    PageDecor, RenderSpec, de_date, de_num, esc, htmlbox, iban_checksum, iban_grouped, pdf_date,
+    PageDecor, RenderSpec, de_date, de_num, doc_view, esc, htmlbox, iban_checksum, iban_grouped, pdf_date,
 )
 from guideline_text import guideline_sections
 from msa_clauses import annex_kpis, build_clauses, clause_index, escalation
@@ -319,9 +319,12 @@ class Layout:
         w = b["warehouse"]
         rows = "".join(
             f"<tr><td>{li['position']}</td><td class='ino'>{li['item_no']}</td><td>{esc(li['description'])}</td><td>{li['unit']}</td>"
-            f"<td class='r'>{de_num(li['quantity'], 0)}</td><td class='r'><b>{de_num(li['quantity'], 0)}</b></td><td class='c'>0</td></tr>"
-            for li in m["line_items"]
+            f"<td class='r'>{de_num(li['qty_ordered'], 0)}</td><td class='r'><b>{de_num(li['qty_delivered'], 0)}</b></td>"
+            f"<td class='c'>{de_num(li['qty_ordered'] - li['qty_delivered'], 0)}</td></tr>"
+            for li in doc_view(m)["delivery_note"]
         )
+        dn_status = ("Complete delivery – no backorders" if doc_view(m)["dn_complete"]
+                     else "Partial delivery – open quantities will be delivered separately")
         info = self._info_table([
             ("Delivery note no.", dn["number"]), ("Date of dispatch", de_date(dn["date"])),
             ("Your order no.", d["purchase_order"]["number"]), ("Your order date", de_date(d["purchase_order"]["date"])),
@@ -348,7 +351,7 @@ class Layout:
               <td class='k' width='15%'>Gross weight</td><td>{dn['gross_weight_kg']} kg</td></tr>
           <tr><td class='k'>Shipping terms</td><td>{m['msa_terms']['incoterm']} {w['city']} (Incoterms® 2020)</td>
               <td class='k'>Carrier</td><td>Own truck, HH-PV 418</td></tr>
-          <tr><td class='k'>Delivery status</td><td colspan='3'>Complete delivery – no backorders</td></tr>
+          <tr><td class='k'>Delivery status</td><td colspan='3'>{dn_status}</td></tr>
         </table>
         <table style='width:100%;margin-top:26px;font-size:8pt'><tr>
           <td style='width:46%;border-top:0.8px solid #444;padding-top:3px'>Dispatched by: {s['dispatch_contact']}, Pakvero shipping department</td>
@@ -379,10 +382,20 @@ class Layout:
         gr = d["goods_receipt"]
         rows = "".join(
             f"<tr><td class='c'>{li['position']}</td><td class='ino'>{li['item_no']}</td><td>{esc(li['description'])}</td><td class='c'>{li['unit']}</td>"
-            f"<td class='r'>{de_num(li['quantity'], 0)}</td><td class='r'>{de_num(li['quantity'], 0)}</td>"
-            f"<td class='r'><b>{de_num(li['quantity'], 0)}</b></td><td class='c'>±0</td><td class='c'>{gr['storage_location']}-{i + 1:02d}</td><td class='c'>OK</td></tr>"
-            for i, li in enumerate(m["line_items"])
+            f"<td class='r'>{de_num(li['qty_ordered'], 0)}</td><td class='r'>{de_num(li['qty_delivered'], 0)}</td>"
+            f"<td class='r'><b>{de_num(li['qty_received'], 0)}</b></td>"
+            f"<td class='c'>{'±0' if li['qty_received'] == li['qty_delivered'] else de_num(li['qty_received'] - li['qty_delivered'], 0)}</td>"
+            f"<td class='c'>{gr['storage_location']}-{i + 1:02d}</td><td class='c'>{'OK' if li['qty_received'] == li['qty_delivered'] else 'SHORT'}</td></tr>"
+            for i, li in enumerate(doc_view(m)["goods_receipt"])
         )
+        view = doc_view(m)
+        if view["gr_clean"]:
+            gr_remark = "Delivery complete and in good condition. No deviations from purchase order or delivery note."
+        elif view["gr_short_items"]:
+            gr_remark = (f"Shortfall against delivery note for item(s) {', '.join(view['gr_short_items'])}; "
+                         "only the quantities recorded as received were posted. Damage report sent to supplier.")
+        else:
+            gr_remark = "Partial delivery according to delivery note; quantities received as shown. Open PO quantities remain."
         field = lambda k, v: f"<td class='fk' width='17%'>{k}</td><td class='fv' width='33%'>{v}</td>"  # noqa: E731
         html = f"""
         {self._buyer_logo('GOODS RECEIPT', 'Wareneingangsbeleg · internal')}
@@ -405,7 +418,7 @@ class Layout:
           <tr><td>[x] Packaging undamaged</td><td>[x] Quantities checked against delivery note</td><td>[x] Labels / batch numbers legible</td></tr>
           <tr><td>[ ] Damage report attached</td><td>[ ] Partial delivery</td><td>[ ] Quality inspection required</td></tr>
         </table>
-        <p style='font-size:8pt'><b>Remarks:</b> Delivery complete and in good condition. No deviations from purchase order or delivery note.</p>
+        <p style='font-size:8pt'><b>Remarks:</b> {gr_remark}</p>
         <table style='width:100%;margin-top:22px;font-size:8pt'><tr>
           <td style='width:46%;border-top:0.8px solid #444;padding-top:3px'>Received and checked: {gr['receiving_clerk']}, Central Warehouse, {de_date(gr['date'])}</td>
           <td style='width:8%'></td>
@@ -432,14 +445,21 @@ class Layout:
 
     # ------------------------------------------------------------------ invoice
     def invoice(self):
-        m, b, s, d, t = self.m, self.b, self.s, self.d, self.t
+        m, b, s, d = self.m, self.b, self.s, self.d
+        view = doc_view(m)
+        t = view["invoice_totals"]
         inv = d["invoice"]
         pt = m["msa_terms"]["payment_terms"]
         rows = "".join(
             f"<tr><td>{li['position']}</td><td class='ino'>{li['item_no']}</td><td>{esc(li['description'])}</td>"
             f"<td class='r'>{de_num(li['quantity'], 0)}</td><td>{li['unit']}</td>"
             f"<td class='r'>{de_num(li['unit_price'])}</td><td class='r'>{de_num(li['line_total'])}</td></tr>"
-            for li in m["line_items"]
+            for li in view["invoice"]
+        )
+        rows += "".join(
+            f"<tr><td>{len(view['invoice']) + k + 1}</td><td></td><td>{esc(sc['label'])}</td><td class='r'>1</td><td>flat</td>"
+            f"<td class='r'>{de_num(sc['amount'])}</td><td class='r'>{de_num(sc['amount'])}</td></tr>"
+            for k, sc in enumerate(view["invoice_surcharges"])
         )
         info = self._info_table([
             ("Invoice no.", inv["number"]), ("Invoice date", de_date(inv["date"])),

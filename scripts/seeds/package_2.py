@@ -16,6 +16,7 @@ from datetime import date, timedelta
 import pymupdf
 
 from common import (
+    doc_view,
     PageDecor, RenderSpec, de_date, de_num, esc, htmlbox, iban_checksum, iban_grouped, pdf_date,
 )
 from guideline_text import guideline_sections
@@ -320,10 +321,13 @@ class Layout:
         w = b["warehouse"]
         rows = "".join(
             f"<tr><td class='c'>{li['position']}</td><td class='ino'>{li['item_no']}</td><td>{esc(li['description'])}</td>"
-            f"<td class='c'>{li['unit']}</td><td class='r'>{de_num(li['quantity'], 0)}</td><td class='r'><b>{de_num(li['quantity'], 0)}</b></td>"
+            f"<td class='c'>{li['unit']}</td><td class='r'>{de_num(li['qty_ordered'], 0)}</td><td class='r'><b>{de_num(li['qty_delivered'], 0)}</b></td>"
             f"<td class='c'>{2626 + i}-{'A' if i % 2 else 'B'}</td></tr>"
-            for i, li in enumerate(m["line_items"])
+            for i, li in enumerate(doc_view(m)["delivery_note"])
         )
+        ship_note = (f"<b>Shipment complete.</b> No open quantities remain on purchase order {d['purchase_order']['number']}."
+                     if doc_view(m)["dn_complete"] else
+                     f"<b>Partial shipment.</b> Open quantities on purchase order {d['purchase_order']['number']} will follow as a separate delivery.")
         grid = self._ref_grid([
             ("Delivery note", dn["number"]), ("Ship date", de_date(dn["date"])),
             ("Customer PO", d["purchase_order"]["number"]), ("PO date", de_date(d["purchase_order"]["date"])),
@@ -346,7 +350,7 @@ class Layout:
           <tr><th class='c'>PO pos.</th><th>Item no.</th><th>Description</th><th class='c'>UoM</th><th class='r'>Ordered</th><th class='r'>Shipped</th><th class='c'>Date code</th></tr>
           {rows}
         </table>
-        <p style='margin-top:10px'><b>Shipment complete.</b> No open quantities remain on purchase order {d['purchase_order']['number']}.
+        <p style='margin-top:10px'>{ship_note}
         Certificates of conformance are enclosed in carton 1/4.</p>
         <table style='width:100%;margin-top:28px;font-size:8pt'><tr>
           <td width='45%' style='border-top:0.8px solid {TEAL};padding-top:3px'>Packed and checked: {s['dispatch_contact']}, Sarvelin logistics</td>
@@ -387,10 +391,15 @@ class Layout:
         gr = d["goods_receipt"]
         rows = "".join(
             f"<tr><td>{li['position']:04d}</td><td class='ino'>{li['item_no']}</td><td>{li['unit'].upper()}</td>"
-            f"<td class='r'>{de_num(li['quantity'], 0)}</td><td class='r'>{de_num(li['quantity'], 0)}</td><td class='r'>{de_num(li['quantity'], 0)}</td>"
-            f"<td class='r'>0</td><td>{gr['storage_location']}-{(i % 4) + 1:02d}</td><td>QI-FREE</td></tr>"
-            for i, li in enumerate(m["line_items"])
+            f"<td class='r'>{de_num(li['qty_ordered'], 0)}</td><td class='r'>{de_num(li['qty_delivered'], 0)}</td><td class='r'>{de_num(li['qty_received'], 0)}</td>"
+            f"<td class='r'>{de_num(li['qty_received'] - li['qty_delivered'], 0)}</td><td>{gr['storage_location']}-{(i % 4) + 1:02d}</td>"
+            f"<td>{'QI-FREE' if li['qty_received'] == li['qty_delivered'] else 'BLOCKED'}</td></tr>"
+            for i, li in enumerate(doc_view(m)["goods_receipt"])
         )
+        view = doc_view(m)
+        shortfall = "NO" if not view["gr_short_items"] else "YES"
+        end_note = ("no deviations" if view["gr_clean"] else
+                    f"deviations: {', '.join(view['gr_short_items'])} short" if view["gr_short_items"] else "partial delivery per DN")
         html = f"""
         <div class='h'>QUENTRION ELEKTRONIK GMBH :: WMS GOODS RECEIPT POSTING</div>
         <div class='sub'>Material document {gr['number']} / {date.fromisoformat(gr['date']).year} &nbsp; Mvt type 101 &nbsp; Plant 1000 Köln &nbsp; Storage location {gr['storage_location']}</div>
@@ -409,9 +418,9 @@ class Layout:
         <table class='f'>
           <tr><td width='50%'>ESD packaging intact ........... YES</td><td width='50%'>MSL dry packs sealed / HIC ok ... YES</td></tr>
           <tr><td>Labels match delivery note ..... YES</td><td>Certificate of conformance ...... YES</td></tr>
-          <tr><td>Quantity check (count/weigh) ... OK</td><td>Damage / shortfall reported ..... NO</td></tr>
+          <tr><td>Quantity check (count/weigh) ... {'OK' if not view['gr_short_items'] else 'SHORT'}</td><td>Damage / shortfall reported ..... {shortfall}</td></tr>
         </table>
-        <div class='sep'>--- end of goods receipt {gr['number']} : {len(m['line_items'])} items posted, no deviations ---</div>
+        <div class='sep'>--- end of goods receipt {gr['number']} : {len(m['line_items'])} items posted, {end_note} ---</div>
         <table style='width:100%;margin-top:26px'><tr>
           <td width='45%' style='border-top:0.6px dashed #333;padding-top:3px'>Goods-In clerk: {gr['receiving_clerk']}</td><td width='10%'></td>
           <td width='45%' style='border-top:0.6px dashed #333;padding-top:3px'>Stock placement confirmed: Hall 4 / {gr['storage_location']}</td>
@@ -439,14 +448,22 @@ class Layout:
 
     # ================================================================== invoice (supplier)
     def invoice(self):
-        m, b, s, d, t = self.m, self.b, self.s, self.d, self.t
+        m, b, s, d = self.m, self.b, self.s, self.d
+        view = doc_view(m)
+        t = view["invoice_totals"]
         inv = d["invoice"]
         pt = m["msa_terms"]["payment_terms"]
         rows = "".join(
             f"<tr><td class='c'>{li['position']}</td><td class='ino'>{li['item_no']}</td><td>{esc(li['description'])}</td>"
             f"<td class='r'>{de_num(li['quantity'], 0)}</td><td class='c'>{li['unit']}</td>"
             f"<td class='r'>{de_num(li['unit_price'])}</td><td class='r'>{de_num(li['line_total'])}</td></tr>"
-            for li in m["line_items"]
+            for li in view["invoice"]
+        )
+        step = m["line_items"][1]["position"] - m["line_items"][0]["position"]
+        rows += "".join(
+            f"<tr><td class='c'>{m['line_items'][-1]['position'] + step * (k + 1)}</td><td class='ino'></td><td>{esc(sc['label'])}</td>"
+            f"<td class='r'>1</td><td class='c'>LS</td><td class='r'>{de_num(sc['amount'])}</td><td class='r'>{de_num(sc['amount'])}</td></tr>"
+            for k, sc in enumerate(view["invoice_surcharges"])
         )
         grid = self._ref_grid([
             ("Invoice no.", inv["number"]), ("Invoice date", de_date(inv["date"])),
