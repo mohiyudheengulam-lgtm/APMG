@@ -111,6 +111,7 @@ export type Job = {
   id: string;
   package: string;
   path: "A" | "B";
+  assisted?: boolean;
   status: "queued" | "running" | "done" | "error";
   stage: string;
   steps: Step[];

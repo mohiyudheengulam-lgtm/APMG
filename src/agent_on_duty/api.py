@@ -220,6 +220,13 @@ LOCK = threading.Lock()
 class JobIn(BaseModel):
     package: str
     path: str
+    assisted: bool = False
+
+
+class BatchIn(BaseModel):
+    packages: list[str]
+    paths: list[str] = ["A", "B"]
+    assisted: bool = False
 
 
 def _worker():
@@ -237,7 +244,8 @@ def _worker():
                 with LOCK:
                     job["steps"].append(asdict(step))
 
-            run, vid = pipeline.verify(pdir, job["path"], INDEX, WRITER, extra={"source": "app"}, on_step=on_step)
+            run, vid = pipeline.verify(pdir, job["path"], INDEX, WRITER, extra={"source": "app"}, on_step=on_step,
+                                       assisted=job.get("assisted", False))
             job.update(status="done", stage="Saved as PENDING_REVIEW", verification_id=vid,
                        recommendation=run.recommendation.label if run.recommendation else None, run_status=run.status.value)
         except Exception as e:  # surfaced to the UI
@@ -249,21 +257,39 @@ def _worker():
 threading.Thread(target=_worker, daemon=True).start()
 
 
-@app.post("/api/jobs")
-def create_job(body: JobIn):
-    if body.path not in ("A", "B"):
+def _enqueue(package: str, path: str, assisted: bool) -> dict:
+    if path not in ("A", "B"):
         raise HTTPException(400, "path must be A or B")
-    _package_dir(body.package)
+    _package_dir(package)
     jid = uuid.uuid4().hex[:10]
-    JOBS[jid] = {"id": jid, "package": body.package, "path": body.path, "status": "queued", "stage": "Queued",
-                 "steps": [], "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+    JOBS[jid] = {"id": jid, "package": package, "path": path, "assisted": assisted, "status": "queued", "stage": "Queued",
+                 "steps": [], "created_at": datetime.now(timezone.utc).isoformat(timespec="microseconds")}
     QUEUE.put(jid)
     return JOBS[jid]
 
 
+@app.post("/api/jobs")
+def create_job(body: JobIn):
+    return _enqueue(body.package, body.path, body.assisted)
+
+
+@app.post("/api/jobs/batch")
+def create_batch(body: BatchIn):
+    """Queue many verifications; the single worker runs them one after another (e.g. overnight)."""
+    return [_enqueue(p, path, body.assisted) for p in body.packages for path in body.paths]
+
+
+@app.get("/api/queue")
+def queue_status():
+    counts: dict[str, int] = {}
+    for j in JOBS.values():
+        counts[j["status"]] = counts.get(j["status"], 0) + 1
+    return counts
+
+
 @app.get("/api/jobs")
 def jobs():
-    return sorted(JOBS.values(), key=lambda j: j["created_at"], reverse=True)[:20]
+    return [dict(j, steps=[]) for j in sorted(JOBS.values(), key=lambda j: j["created_at"], reverse=True)[:60]]
 
 
 @app.get("/api/jobs/{jid}")

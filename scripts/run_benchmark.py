@@ -31,9 +31,14 @@ def _sh(*cmd: str) -> str:
         return ""
 
 
+def ollama_env(name: str) -> str | None:
+    """Value the local Ollama app was started with (macOS launchctl env, else this process env), if set."""
+    import os
+    return _sh("launchctl", "getenv", name) or os.environ.get(name) or None
+
+
 def ollama_num_parallel() -> str | None:
-    """Value the local Ollama app was started with (macOS launchctl env), if set."""
-    return _sh("launchctl", "getenv", "OLLAMA_NUM_PARALLEL") or None
+    return ollama_env("OLLAMA_NUM_PARALLEL")
 
 
 def manifest(args) -> dict:
@@ -46,6 +51,8 @@ def manifest(args) -> dict:
         "software": {"python": sys.version.split()[0], "ollama": _sh("ollama", "--version"),
                      "pymupdf": pymupdf.VersionBind, "faiss": faiss.__version__, "pydantic": pydantic.__version__},
         "ollama_num_parallel": ollama_num_parallel(),
+        "ollama_flash_attention": ollama_env("OLLAMA_FLASH_ATTENTION"),
+        "ollama_kv_cache_type": ollama_env("OLLAMA_KV_CACHE_TYPE"),
         "model": MODEL, "embed_model": EMBED_MODEL, "run_options": RUN_OPTIONS, "think": THINK, "max_steps": MAX_STEPS,
         "packages": args.packages, "paths": args.paths, "runs": args.runs,
     }
@@ -72,8 +79,8 @@ def main():
     args = ap.parse_args()
 
     if ollama_num_parallel() != "1" and not args.allow_parallel:
-        sys.exit("OLLAMA_NUM_PARALLEL is not 1 (Exposé §6.2). Run `launchctl setenv OLLAMA_NUM_PARALLEL 1`, "
-                 "restart the Ollama app, then retry — or pass --allow-parallel for a non-final run.")
+        sys.exit("OLLAMA_NUM_PARALLEL is not 1 (Exposé §6.2). See SETUP.md (Ollama settings), restart Ollama, "
+                 "then retry — or pass --allow-parallel for a non-final run.")
 
     pkgs = sorted(p for p in args.data.iterdir() if p.is_dir() and (not args.packages or p.name in args.packages))
     args.packages = [p.name for p in pkgs]

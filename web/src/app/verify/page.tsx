@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { CheckCircle2, FileText, Play, Search, Upload, XCircle } from "lucide-react";
+import { CheckCircle2, FileText, Layers, Play, Search, Upload, XCircle, Zap } from "lucide-react";
 import { Job, Package, api, useApi } from "@/lib/api";
 import { num, secs } from "@/lib/format";
 import { Card, Empty, ErrorNote, FlagChips, PageHeader, PathBadge, Spinner } from "@/components/ui";
@@ -12,6 +12,7 @@ export default function VerifyPage() {
   const { data: pkgs, error, reload } = useApi<Package[]>("/api/packages");
   const [selected, setSelected] = useState<string | null>(null);
   const [path, setPath] = useState<"A" | "B">("A");
+  const [assisted, setAssisted] = useState(false);
   const [filter, setFilter] = useState("");
   const [jobId, setJobId] = useState<string | null>(null);
   const [runError, setRunError] = useState<string>();
@@ -32,7 +33,7 @@ export default function VerifyPage() {
       const j = await api<Job>("/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ package: pkg.id, path }),
+        body: JSON.stringify({ package: pkg.id, path, assisted }),
       });
       setJobId(j.id);
     } catch (e) {
@@ -83,6 +84,7 @@ export default function VerifyPage() {
               ))}
             </ul>
           </Card>
+          <BatchCard packages={shown.map((p) => p.id)} assisted={assisted} />
           <UploadCard onDone={(id) => (reload(), setSelected(id))} />
         </div>
 
@@ -123,6 +125,16 @@ export default function VerifyPage() {
                     </button>
                   ))}
                 </div>
+                <label className="mb-3 flex cursor-pointer items-start gap-2 rounded border border-line px-3 py-2 text-xs text-ink-2">
+                  <input type="checkbox" checked={assisted} onChange={(e) => setAssisted(e.target.checked)} className="mt-0.5" />
+                  <span>
+                    <span className="inline-flex items-center gap-1 font-semibold text-ink">
+                      <Zap size={12} /> Assisted mode (fast)
+                    </span>{" "}
+                    — invoice, PO and goods receipt are pre-filled from extraction; the agent only checks the contract.
+                    For real use only: not part of the research comparison.
+                  </span>
+                </label>
                 <button
                   onClick={run}
                   disabled={!!busy}
@@ -144,6 +156,7 @@ export default function VerifyPage() {
                   <li key={j.id} className="flex items-center justify-between gap-2 border-b border-line py-1.5 last:border-0">
                     <span className="flex items-center gap-2">
                       <span className="font-semibold">{j.package}</span> <PathBadge path={j.path} />
+                      {j.assisted && <span className="rounded bg-[#fff4ce] px-1.5 text-[10px] font-semibold text-[#8a6d00]">assisted</span>}
                     </span>
                     <span className="flex items-center gap-2">
                       {j.status === "done" ? <FlagChips recommendation={j.recommendation ?? null} /> : <span className="text-xs text-ink-2">{j.stage}</span>}
@@ -212,6 +225,52 @@ function LiveJob({ job }: { job: Job }) {
           </Link>
         </div>
       )}
+    </Card>
+  );
+}
+
+function BatchCard({ packages, assisted }: { packages: string[]; assisted: boolean }) {
+  const [paths, setPaths] = useState<("A" | "B")[]>(["A", "B"]);
+  const [msg, setMsg] = useState<string>();
+  const { data: q } = useApi<Record<string, number>>("/api/queue", 5000);
+  async function queue() {
+    try {
+      const jobs = await api<Job[]>("/api/jobs/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packages, paths, assisted }),
+      });
+      setMsg(`Queued ${jobs.length} verifications — they run one after another.`);
+    } catch (e) {
+      setMsg(String(e instanceof Error ? e.message : e));
+    }
+  }
+  return (
+    <Card title="Batch run" right={<span className="text-xs text-ink-2">{q ? `${q.running ?? 0} running · ${q.queued ?? 0} queued · ${q.done ?? 0} done` : ""}</span>}>
+      <p className="mb-2 text-xs text-ink-2">
+        Queue every package in the list above ({packages.length}, use the filter to narrow it) — e.g. to run overnight.
+        {assisted ? " Assisted mode is on." : ""}
+      </p>
+      <div className="flex items-center gap-3">
+        {(["A", "B"] as const).map((x) => (
+          <label key={x} className="flex items-center gap-1.5 text-sm">
+            <input
+              type="checkbox"
+              checked={paths.includes(x)}
+              onChange={(e) => setPaths(e.target.checked ? [...paths, x].sort() as ("A" | "B")[] : paths.filter((p) => p !== x))}
+            />
+            <PathBadge path={x} />
+          </label>
+        ))}
+        <button
+          onClick={queue}
+          disabled={!packages.length || !paths.length}
+          className="ml-auto inline-flex items-center gap-1.5 rounded border border-[#2a78d6] px-3 py-1.5 text-sm font-semibold text-[#2a78d6] hover:bg-[#eff6fc] disabled:opacity-40"
+        >
+          <Layers size={14} /> Queue {packages.length * paths.length}
+        </button>
+      </div>
+      {msg && <p className="mt-2 text-xs text-ink-2">{msg}</p>}
     </Card>
   );
 }

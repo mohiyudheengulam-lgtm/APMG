@@ -121,6 +121,7 @@ def pct(c, t):
 def evaluate(tag: str, data: Path, index: Path) -> dict:
     out = Path("results") / tag
     runs = [json.loads(f.read_text()) for f in sorted((out / "audit").glob("*.json"))]
+    runs = [r for r in runs if r.get("mode", "research") == "research"]  # assisted runs are never research data
     gts = {p.name: json.loads((p / "ground_truth.json").read_text()) for p in data.iterdir() if p.is_dir()}
     by_path = defaultdict(list)
     for r in runs:
