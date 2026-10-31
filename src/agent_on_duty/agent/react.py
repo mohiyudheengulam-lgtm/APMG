@@ -93,11 +93,12 @@ class SearchArgs(BaseModel):
 
 
 class ReadArgs(BaseModel):
-    paths: list[str] = Field(default_factory=list, max_length=5)
-    path: str | None = None  # a single path is accepted too
+    paths: list[str] | str = Field(default_factory=list)
+    path: list[str] | str | None = None  # models use either field, with one path or a list
 
     def all_paths(self) -> list[str]:
-        out = list(self.paths) + ([self.path] if self.path else [])
+        as_list = lambda v: [v] if isinstance(v, str) else list(v or [])  # noqa: E731
+        out = as_list(self.paths) + as_list(self.path)
         if not out:
             raise ValueError("give 'paths' (up to 5 files)")
         return out[:5]
