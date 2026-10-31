@@ -11,3 +11,4 @@ results/
 data/uploads/
 .streamlit/secrets.toml
 .DS_Store
+data/seed_previews/

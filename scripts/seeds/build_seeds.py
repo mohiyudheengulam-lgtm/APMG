@@ -1,7 +1,7 @@
 """Build all synthetic seed procurement packages.
 
 Usage:  (from the repo root)  uv run python scripts/seeds/build_seeds.py [1|2 ...]
-Outputs to data/seeds/<package_name>/ ; PNG previews go to the session scratchpad (common.PREVIEW_DIR).
+Outputs to data/seeds/<package_name>/ ; PNG previews go to data/seed_previews/ (git-ignored).
 """
 
 from __future__ import annotations
