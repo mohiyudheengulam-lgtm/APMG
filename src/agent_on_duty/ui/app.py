@@ -44,7 +44,7 @@ st.set_page_config(page_title="Agent On Duty", page_icon="🧾", layout="wide", 
 
 CSS = """
 <style>
-#MainMenu, footer, header[data-testid="stHeader"] {visibility: hidden; height: 0;}
+#MainMenu, footer {visibility: hidden;} header[data-testid="stHeader"] {background: transparent; top: 48px; height: 2.5rem;} [data-testid="stExpandSidebarButton"], [data-testid="stSidebarCollapsedControl"] {z-index: 999995; top: 56px;}
 html, body, [class*="css"], .stApp {font-family: "Segoe UI", system-ui, -apple-system, sans-serif;}
 .stApp {background: #f3f2f1;}
 .block-container {padding-top: 4.2rem; padding-bottom: 2rem; max-width: 1500px;}

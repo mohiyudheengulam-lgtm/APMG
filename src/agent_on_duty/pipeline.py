@@ -24,8 +24,8 @@ def retrieval_for(package_dir: Path, path: str, index_root: Path) -> PathATools 
 
 
 def verify(package_dir: Path, path: str, index_root: Path, writer: RecommendationWriter | None = None,
-           extra: dict | None = None) -> tuple[AgentRun, str | None]:
+           extra: dict | None = None, on_step=None) -> tuple[AgentRun, str | None]:
     build = prepare(package_dir, path, index_root)
-    run = Verifier(package_dir.name, retrieval_for(package_dir, path, index_root)).verify()
+    run = Verifier(package_dir.name, retrieval_for(package_dir, path, index_root)).verify(on_step=on_step)
     vid = writer.save(run, (extra or {}) | {"build": build}) if writer else None
     return run, vid

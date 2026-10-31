@@ -7,6 +7,7 @@ it has no access to the decision store (§5.4).
 
 import json
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import StrEnum
@@ -280,7 +281,7 @@ class Verifier:
             self.run.invalid_tool_calls += 1
             return f"Error: invalid call to {name}: {str(e)[:400]}"
 
-    def verify(self, client: ollama.Client | None = None) -> AgentRun:
+    def verify(self, client: ollama.Client | None = None, on_step: Callable[[Step], None] | None = None) -> AgentRun:
         client = client or ollama.Client()
         tools = self.retrieval.tools + COMMON_TOOLS
         messages = [{"role": "system", "content": SYSTEM_PROMPT},
@@ -304,6 +305,8 @@ class Verifier:
                     messages.append({"role": "tool", "tool_name": c.function.name, "content": result})
                 record.seconds = round(time.perf_counter() - t0, 3)
                 self.run.steps.append(record)
+                if on_step:
+                    on_step(record)
                 if self.done:
                     self.run.status = RunStatus.FINISHED
                     break

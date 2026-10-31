@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/* Report-style tokens (Power BI-like light canvas). Chart colors follow the dataviz reference palette. */
+:root {
+  --canvas: #f3f2f1;
+  --tile: #ffffff;
+  --bar: #252423;
+  --nav: #faf9f8;
+  --line: #e1dfdd;
+  --ink: #252423;
+  --ink-2: #605e5c;
+  --muted: #8a8886;
+  --accent: #f2c811;
+  --series-a: #2a78d6;
+  --series-b: #eb6834;
+  --good: #107c10;
+  --bad: #a4262c;
+  --warn: #8a6d00;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-tile: var(--tile);
+  --color-bar: var(--bar);
+  --color-nav: var(--nav);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-series-a: var(--series-a);
+  --color-series-b: var(--series-b);
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+.tile {
+  background: var(--tile);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: 0 1.6px 3.6px rgba(0, 0, 0, 0.08), 0 0.3px 0.9px rgba(0, 0, 0, 0.06);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* recharts focus outline off; hover tooltips carry the info */
+.recharts-wrapper *:focus {
+  outline: none;
+}
