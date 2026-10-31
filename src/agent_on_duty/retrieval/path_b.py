@@ -52,7 +52,6 @@ def _record_concept(doc: ExtractedDocument, links: list[tuple[str, str]]) -> str
         body += [f"| {ln.item_no} | {ln.quantity} |" for ln in rec.lines]
     if getattr(rec, "surcharges", None):
         body += ["", "## Additional Charges", ""] + [f"- {s.label}: {s.amount}" for s in rec.surcharges]
-    body += ["", "## Full document text (page 1)", "", "```", doc.pages[0].text.strip(), "```"]
     if links:
         body += ["", "## Related", ""] + [f"- [{label}]({target})" for label, target in links]
     return _frontmatter(meta) + "\n".join(body) + "\n"

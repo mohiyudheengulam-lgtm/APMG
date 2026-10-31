@@ -1,24 +1,10 @@
 """Extraction must reproduce every ground-truth field of the generated benchmark, across both seed layouts."""
 
 import json
-import sys
 from decimal import Decimal
-from pathlib import Path
-
-import pytest
 
 from agent_on_duty.extraction.extract import DocType, extract_package, parse_number
 from agent_on_duty.retrieval.path_b import _msa_sections
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts" / "seeds"))
-from variants import generate  # noqa: E402
-
-
-@pytest.fixture(scope="module")
-def packages(tmp_path_factory):
-    out = tmp_path_factory.mktemp("packages")
-    generate(out, seed=42)
-    return sorted(p for p in out.iterdir() if p.is_dir())
 
 
 def test_german_numbers():

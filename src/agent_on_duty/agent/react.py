@@ -192,14 +192,22 @@ class AgentRun:
     recommendation: Recommendation | None = None
     status: RunStatus = RunStatus.ERROR
     seconds: float = 0.0
+    mode: str = "research"   # "assisted": documents pre-submitted from extraction (never used in the benchmark)
+    compactions: int = 0     # retrieval results replaced by a one-line note to keep the context small
 
     @property
     def prompt_tokens(self) -> int:
         return sum(s.prompt_tokens for s in self.steps)
 
 
+COMPACT_AFTER_STEPS = 3
+
+
 class Verifier:
-    def __init__(self, package_id: str, retrieval: PathATools | PathBTools, documents: list[dict] | None = None):
+    def __init__(self, package_id: str, retrieval: PathATools | PathBTools, documents: list[dict] | None = None,
+                 assisted=None):
+        """`assisted`: an ExtractedPackage — invoice, PO and goods receipt are submitted from extraction and checked
+        before the agent starts; the agent only handles MSA clauses. Not part of the research comparison."""
         self.retrieval = retrieval
         self.documents = documents or []
         self.run = AgentRun(package_id=package_id, path=retrieval.name)
@@ -210,6 +218,29 @@ class Verifier:
         self.seen: set[tuple[str, int]] = set()  # (document, page) revealed by retrieval so far
         self.checks_ran = False
         self.done = False
+        self._last_seen: set[tuple[str, int]] = set()
+        self.precheck = ""
+        if assisted is not None:
+            self._preload(assisted)
+
+    def _preload(self, pkg):
+        from agent_on_duty.extraction.extract import DocType  # local import: extraction is optional here
+        self.run.mode = "assisted"
+        for key in ("invoice", "purchase_order", "goods_receipt"):
+            doc = pkg.get(DocType(key))
+            if doc is None or doc.record is None:
+                self.missing.add(key)
+                continue
+            self.docs[key] = doc.record
+            self.seen.add((doc.filename, 1))
+            self.run.submitted[key] = {"doc_type": key, "document": doc.filename,
+                                       "lines": [{"item_no": ln.item_no, "quantity": str(ln.quantity),
+                                                  "unit_price": None if ln.unit_price is None else str(ln.unit_price),
+                                                  "line_total": None if ln.line_total is None else str(ln.line_total)}
+                                                 for ln in doc.record.lines],
+                                       "surcharges": [{"label": sc.label, "amount": str(sc.amount)}
+                                                      for sc in getattr(doc.record, "surcharges", [])]}
+        self.precheck = self.run_checks() if "invoice" in self.docs else "No invoice found."
 
     def _require_seen(self, document: str, page: int | None = None):
         if not any(d == document and (page is None or p == page) for d, p in self.seen):
@@ -290,6 +321,7 @@ class Verifier:
             if name in {t["function"]["name"] for t in self.retrieval.tools}:
                 text, seen = self.retrieval.call(name, args)
                 self.seen |= seen
+                self._last_seen = seen
                 return text
             match name:
                 case "submit_document":
@@ -313,13 +345,39 @@ class Verifier:
         if self.documents:
             lines.append("Documents in this package:")
             lines += [f"- {d['file']} ({d['type'].replace('_', ' ')})" for d in self.documents]
+        if self.run.mode == "assisted":
+            lines += ["", "The invoice, purchase order and goods receipt were already extracted, submitted and checked:",
+                      self.precheck,
+                      "Missing: " + (", ".join(sorted(self.missing)) if self.missing else "none") + ".",
+                      "Remaining task: if the invoice has surcharges, retrieve the MSA surcharge clause and call "
+                      "check_surcharge; for missing documents call report_missing; then call finish."]
         return "\n".join(lines)
+
+    def _consumed(self) -> set[str]:
+        """Documents whose content the agent has already turned into submissions or citations."""
+        return {v["document"] for v in self.run.submitted.values()} | {c["document"] for c in self.run.cited_clauses}
+
+    def _compact(self, messages: list[dict], retrieved: list[dict], step: int):
+        """Replace old or fully used retrieval results with a one-line note (same rule for both paths)."""
+        consumed = self._consumed()
+        for r in retrieved:
+            if r["compacted"]:
+                continue
+            docs = {d for d, _ in r["seen"]}
+            if (docs and docs <= consumed) or step - r["step"] >= COMPACT_AFTER_STEPS:
+                where = ", ".join(f"{d} p.{p}" for d, p in sorted(r["seen"])) or "nothing citable"
+                messages[r["index"]]["content"] = (f"[Earlier {r['tool']} result for {r['args']} removed to keep the context "
+                                                   f"small ({where}). Retrieve it again if you still need it.]")
+                r["compacted"] = True
+                self.run.compactions += 1
 
     def verify(self, client: ollama.Client | None = None, on_step: Callable[[Step], None] | None = None) -> AgentRun:
         client = client or ollama.Client()
         tools = self.retrieval.tools + COMMON_TOOLS
         messages = [{"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": self._task()}]
+        retrieval_tools = {t["function"]["name"] for t in self.retrieval.tools}
+        retrieved: list[dict] = []
         t_start = time.perf_counter()
         try:
             for step in range(1, MAX_STEPS + 1):
@@ -337,6 +395,10 @@ class Verifier:
                     result = self.dispatch(c.function.name, args)
                     record.tool_calls.append({"name": c.function.name, "arguments": args, "result": result[:4000]})
                     messages.append({"role": "tool", "tool_name": c.function.name, "content": result})
+                    if c.function.name in retrieval_tools and not result.startswith("Error"):
+                        retrieved.append({"index": len(messages) - 1, "step": step, "tool": c.function.name,
+                                          "args": json.dumps(args)[:120], "seen": set(self._last_seen), "compacted": False})
+                self._compact(messages, retrieved, step)
                 record.seconds = round(time.perf_counter() - t0, 3)
                 self.run.steps.append(record)
                 if on_step:
