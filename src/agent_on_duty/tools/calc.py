@@ -53,7 +53,7 @@ def price_variance(po: PurchaseOrder, invoice: Invoice) -> list[Finding]:
 
 
 def line_total_variance(invoice: Invoice) -> list[Finding]:
-    """Invoice line total not equal to quantity × unit price. Reported as a price mismatch."""
+    """Invoice line total not equal to quantity × unit price."""
     findings = []
     for inv in invoice.lines:
         if inv.line_total is None:
@@ -62,7 +62,7 @@ def line_total_variance(invoice: Invoice) -> list[Finding]:
         if inv.line_total == expected:
             continue
         findings.append(Finding(
-            flag=Flag.PRICE_MISMATCH,
+            flag=Flag.LINE_TOTAL_MISMATCH,
             item_no=inv.item_no,
             expected=expected,
             actual=inv.line_total,

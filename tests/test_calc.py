@@ -44,3 +44,9 @@ def test_example_totals_590():
     surcharge = Finding(flag=Flag.SURCHARGE, amount=D(150), evidence=[INV_REF, MSA_REF])
     findings = quantity_variance(po, receipt, invoice) + price_variance(po, invoice) + [surcharge]
     assert total_impact(findings) == D("590.00")
+
+
+def test_line_total_flag():
+    bad = invoice.model_copy(update={"lines": [invoice.lines[0].model_copy(update={"line_total": D("6300.00")})]})
+    [f] = line_total_variance(bad)
+    assert f.flag == Flag.LINE_TOTAL_MISMATCH and f.amount == D("100.00")

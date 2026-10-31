@@ -2,7 +2,7 @@
 
 Agent On Duty: A Fully Local Agentic AI System for Multi-Document Procurement Verification and Policy Compliance Auditing
 
-Revised Sections 1–6
+Revised Sections 1–10
 
 # **1\. Introduction & Objective of the Problem (Navya Gupta)**
 
@@ -67,11 +67,11 @@ Lewis et al. (2020) combine a language model (parametric memory) with retrieval 
 
 ## **3.3 Agentic reasoning: ReAct and agentic document workflows**
 
-ReAct (Yao et al., 2023\) combines model reasoning with actions such as tool calls. An agent can gather evidence step by step and adjust its retrieval plan. Agentic RAG (Singh et al., 2025\) applies agentic interaction to retrieval, while Agentic Document Workflows (LlamaIndex, 2025\) apply stateful, tool-mediated processing to business documents. In this project, deterministic tools perform numerical checks—such as price, quantity, and line-total calculations—rather than relying on the model’s arithmetic. Pydantic schemas validate tool inputs and outputs. Following Schluntz and Zhang (2024), the design favors simple, composable patterns over complex agent frameworks.
+ReAct (Yao et al., 2023\) combines model reasoning with actions such as tool calls. An agent can gather evidence step by step and adjust its retrieval plan. Agentic RAG (Singh et al., 2025\) applies agentic interaction to retrieval, while Agentic Document Workflows, a pattern covered in the same survey, apply stateful, tool-mediated processing to business documents. In this project, deterministic tools perform numerical checks—such as price, quantity, and line-total calculations—rather than relying on the model’s arithmetic. Pydantic schemas validate tool inputs and outputs. Following Schluntz and Zhang (2024), the design favors simple, composable patterns over complex agent frameworks.
 
 ## **3.4 Open Knowledge Format (OKF v0.2)**
 
-OKF is described in the project specification as a directory of Markdown concept files with YAML frontmatter and standard Markdown links. Index files support navigation from overview to detail. This project uses OKF v0.2 to represent procurement packages and MSA sections as navigable concepts. The agent can read an index, open a concept file, and follow links to related records or clauses. OKF’s suitability for multi-page procurement contracts is treated as an empirical hypothesis, not an established fact.
+OKF is described in the project specification as a directory of Markdown concept files with YAML frontmatter and standard Markdown links. Index files support navigation from overview to detail. This project uses OKF v0.2 to represent procurement packages and MSA sections as navigable concepts. The agent can read an index, open a concept file, and follow links to related records or clauses. OKF’s suitability for multi-page procurement contracts is treated as an empirical hypothesis, not an established fact. At the time of writing, OKF is documented only through its specification (Google Cloud, 2026) and has no peer-reviewed evaluation; this gap is one motivation for the empirical comparison in this study.
 
 ## **How the foundations map to the research questions**
 
@@ -108,55 +108,37 @@ Scope of the agent’s authority: Agent On Duty verifies invoices and prepares r
 
 ## **Recommendation and decision statuses**
 
-The agent’s recommendation is distinct from the manager’s final decision. The agent recommendation may be NO\_DISCREPANCY or one or more flags: FLAGGED\_PRICE\_MISMATCH, FLAGGED\_QUANTITY\_MISMATCH, FLAGGED\_SURCHARGE, or FLAGGED\_MISSING\_DOCUMENT. A package with multiple discrepancies can carry multiple flags. The manager’s final decision is stored separately as APPROVED, REJECTED, or OVERRIDDEN. PENDING\_REVIEW and REVIEWED represent the review workflow state, not the substantive invoice decision. The agent never writes a final status. If a required document or clause cannot be found, it flags the case rather than guessing.
+The agent’s recommendation is distinct from the manager’s final decision. The agent recommendation may be NO\_DISCREPANCY or one or more flags: FLAGGED\_PRICE\_MISMATCH, FLAGGED\_QUANTITY\_MISMATCH, FLAGGED\_LINE\_TOTAL\_MISMATCH, FLAGGED\_SURCHARGE, or FLAGGED\_MISSING\_DOCUMENT. A package with multiple discrepancies can carry multiple flags. The manager’s final decision is stored separately as APPROVED, REJECTED, or OVERRIDDEN. PENDING\_REVIEW and REVIEWED represent the review workflow state, not the substantive invoice decision. The agent never writes a final status. If a required document or clause cannot be found, it flags the case rather than guessing.
 
-## **References cited in Sections 1–4**
-
-Baxter, G., & Sommerville, I. (2011). Socio-technical systems: From design methods to systems engineering. Interacting with Computers, 23(1), 4–17.
-
-Clegg, C. W. (2000). Socio-technical principles for system design. Applied Ergonomics, 31(5), 463–477.
-
-Google Cloud. (2026). Open Knowledge Format (OKF) specification, version 0.2.
-
-Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. Advances in Neural Information Processing Systems (NeurIPS), 33, 9459–9474.
-
-LlamaIndex. (2025). Introducing agentic document workflows \[Blog post\]. https\://www\.llamaindex.ai/blog/introducing-agentic-document-workflows
-
-Schluntz, E., & Zhang, B. (2024). Building effective agents. Anthropic. https\://www\.anthropic.com/engineering/building-effective-agents
-
-Singh, A., et al. (2025). Agentic retrieval-augmented generation: A survey on agentic RAG. arXiv preprint arXiv:2501.09136.
-
-Trist, E. L., & Bamforth, K. W. (1951). Some social and psychological consequences of the longwall method of coal-getting. Human Relations, 4(1), 3–38.
-
-Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). ReAct: Synergizing reasoning and acting in language models. International Conference on Learning Representations (ICLR).
 
 # **5\. Research Workflow & System Architecture (Sara Shaban)**
 
-The research workflow coordinates document extraction, two retrieval paradigms, a single agentic reasoning engine, a mandatory HITL approval gate, and a local action and audit engine. The two retrieval paths are evaluated as alternative retrieval paradigms. The retrieval representation and procedure are part of the experimental treatment; Path B’s navigation actions are therefore included in its retrieval process rather than treated as an unchanged component.
+The research workflow coordinates document extraction, two retrieval paradigms, a single agentic reasoning engine, a mandatory HITL approval gate, and a local action and audit engine. The two retrieval paths are evaluated as alternative retrieval paradigms. Each path runs as an independent end-to-end pipeline, from raw document extraction to the final recommendation, and both feed the same single agent. The retrieval representation and procedure are part of the experimental treatment; Path B’s navigation actions are therefore included in its retrieval process rather than treated as an unchanged component.
 
 ## **5.1 Raw document extraction and OCR methodology**
 
-Before indexing, procurement documents (POs, delivery notes, vendor invoices, and multi-page MSAs) are converted into machine-readable text and structured records. Extraction is performed once, and both retrieval paths receive the same extraction output so that extraction differences do not confound the retrieval comparison.
+Before indexing, procurement documents (POs, delivery notes, vendor invoices, and multi-page MSAs) are converted into machine-readable text and structured records. Each pipeline performs its own extraction from the raw files, so that Path A and Path B operate independently end-to-end. Both pipelines use identical extraction tools, versions, and settings. Because PyMuPDF text extraction is deterministic, both paths obtain the same extracted content, and extraction differences do not confound the retrieval comparison. Extraction time is recorded as part of each pipeline’s preparation and build time.
 
 * Native digital documents: PyMuPDF (fitz) reads the text layer and extracts text, tables, and key-value fields. Structured procurement records preserve item numbers, quantities, and unit prices as aligned fields. Plain-text files are read directly.  
 * Scanned documents (fallback): PyMuPDF checks for a text layer. Pages without one are rendered at 300 DPI and passed to Tesseract OCR (Smith, 2007). Scanned documents are supported as an input fallback but are excluded from benchmark evaluation.  
+* Considered alternative: compact document-conversion vision-language models, such as SmolDocling with 256 million parameters (Nassar et al., 2025), extract text, tables, and layout directly from page images and are a candidate replacement for Tesseract on table-heavy scans. Because scanned documents are excluded from the benchmark, this option is not evaluated in the current study.  
 * Output: POs, goods receipts, and invoices are represented as structured records with headers and line items; MSAs are represented as cleaned text with page references. Each extracted field or text segment retains its source filename and page number.
 
 ## **5.2 Single agent architecture and retrieval paradigms**
 
-The central ReAct agent is implemented once and receives context through a standardized Pydantic representation. Both paths use the same extracted documents, model, agent prompt, deterministic calculation tools, output schema, and run settings. The experiment compares the retrieval paradigms: Path A retrieves similarity-ranked chunks, while Path B performs model-directed navigation through OKF concepts. Since navigation actions are intrinsic to Path B, they are counted and reported as part of that path’s retrieval cost. The study does not claim that the internal retrieval operations are identical.
+The central ReAct agent is implemented once and receives context through a standardized Pydantic representation. Both paths use the same extraction configuration, model, agent prompt, deterministic calculation tools, output schema, and run settings. The experiment compares the retrieval paradigms: Path A retrieves similarity-ranked chunks, while Path B performs model-directed navigation through OKF concepts. Since navigation actions are intrinsic to Path B, they are counted and reported as part of that path’s retrieval cost. The study does not claim that the internal retrieval operations are identical.
 
 ## **Path A — Standard vector-based RAG**
 
-Extracted text is split into fixed-size chunks of 500 tokens with a 50-token overlap. Each chunk is converted into a dense embedding using nomic-embed-text locally through Ollama and stored in a FAISS index. For each query, the five chunks with the highest inner-product similarity are passed to the agent. This is the vector-based retrieval baseline.
+Extracted text is split into fixed-size chunks of 500 tokens with a 50-token overlap. Each chunk is converted into a dense embedding (Karpukhin et al., 2020) using nomic-embed-text (Nussbaum et al., 2024) locally through Ollama and stored in a FAISS index (Johnson et al., 2021). For each query, the five chunks with the highest inner-product similarity are passed to the agent. This follows the retrieval-augmented generation approach of Lewis et al. (2020) and serves as the vector-based retrieval baseline.
 
 ## **Path B — OKF v0.2 concept navigation**
 
-The same extracted documents are converted into an OKF bundle: each document package has a folder, each document is represented as a concept file, and MSAs are divided into section-level concept files (e.g., pricing, surcharges, and payment terms). YAML frontmatter records the required type and source information, including the original filename and page. index.md files list directory contents, and Markdown links connect related concepts—for example, an invoice to its PO and the MSA clause governing its prices. The agent navigates by reading an index, opening concept files, and following links, without embeddings.
+The extracted documents are converted into an OKF bundle (Google Cloud, 2026): each document package has a folder, each document is represented as a concept file, and MSAs are divided into section-level concept files (e.g., pricing, surcharges, and payment terms). YAML frontmatter records the required type and source information, including the original filename and page. index.md files list directory contents, and Markdown links connect related concepts—for example, an invoice to its PO and the MSA clause governing its prices. The agent navigates by reading an index, opening concept files, and following links, without embeddings.
 
 ## **5.3 ReAct reasoning engine**
 
-The agent is a single ReAct loop written in plain Python and powered by Qwen3-1.7B, a 1.7-billion-parameter model served locally through Ollama using a 4-bit GGUF build. The agent can call the active retrieval tools or deterministic Python calculation tools for price, quantity, line-total variances, and comparison against MSA rates. Arithmetic is performed by tools, not by the model. Pydantic validates tool inputs and the final recommendation. The model uses temperature 0, a fixed seed, and a maximum of 10 reasoning/tool steps per verification. The model is read-only with respect to final decision storage.
+The agent is a single ReAct loop (Yao et al., 2023) written in plain Python and powered by Qwen3-1.7B (Yang et al., 2025), a 1.7-billion-parameter model served locally through Ollama using a 4-bit GGUF build, the quantized model format of llama.cpp (Gerganov et al., 2023). The agent can call the active retrieval tools or deterministic Python calculation tools for price, quantity, line-total variances, and comparison against MSA rates. Arithmetic is performed by tools, not by the model. Pydantic validates tool inputs and the final recommendation. The model uses temperature 0, a fixed seed, and a maximum of 10 reasoning/tool steps per verification. The model is read-only with respect to final decision storage.
 
 ## **5.4 HITL gateway**
 
@@ -194,25 +176,6 @@ A local Streamlit web app provides three views: package upload, a verification-p
 | Audit log | JSON, one record per verification |
 | User interface | Streamlit web app |
 
-## **References cited in Section 5**
-
-Gerganov, G., et al. (2023). llama.cpp: LLM inference in C/C++ \[Computer software\]. GitHub. https\://github.com/ggml-org/llama.cpp
-
-Google Cloud. (2026). Open Knowledge Format (OKF) specification, version 0.2.
-
-Johnson, J., Douze, M., & Jégou, H. (2021). Billion-scale similarity search with GPUs. IEEE Transactions on Big Data, 7(3), 535–547.
-
-Karpukhin, V., Oğuz, B., Min, S., Lewis, P., Wu, L., Edunov, S., Chen, D., & Yih, W. (2020). Dense passage retrieval for open-domain question answering. In Proceedings of EMNLP 2020 (pp. 6769–6781). Association for Computational Linguistics.
-
-Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. Advances in Neural Information Processing Systems (NeurIPS), 33, 9459–9474.
-
-Nussbaum, Z., Morris, J. X., Duderstadt, B., & Mulyar, A. (2024). Nomic Embed: Training a reproducible long context text embedder. arXiv preprint arXiv:2402.01613.
-
-Smith, R. (2007). An overview of the Tesseract OCR engine. Ninth International Conference on Document Analysis and Recognition (ICDAR), 2, 629–633.
-
-Yang, A., et al. (2025). Qwen3 technical report. arXiv preprint arXiv:2505.09388.
-
-Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). ReAct: Synergizing reasoning and acting in language models. International Conference on Learning Representations (ICLR).
 
 # **6\. Research Methodology & Comparative Evaluation Framework (Mohiyudheen Kalluparamban)**
 
@@ -224,9 +187,9 @@ This project follows Design Science Research (Hevner et al., 2004): it builds a 
 | :---- | :---- | :---- |
 | Problem identification | Three-way matching, MSA compliance checking, and fully local operation. | Stage 1 (Oct 9 – Nov 3\) |
 | Objectives of a solution | Research questions, benchmark design, and evaluation criteria. | Stage 1 (Oct 9 – Nov 3\) |
-| Design and development | Benchmark generator, extraction, Path A, Path B, ReAct agent, approval gate, action/audit engine, and UI. | Sprints 1–4 (Nov 4 – Dec 1\) |
-| Demonstration | Mid-review prototype demo of ReAct & HITL gate (Sprint 3); integrated end-to-end benchmark execution across 20–30 document packages (Sprint 4). | Sprints 3–4(2-22 Dec) |
-| Evaluation | Controlled experimental comparison of Path A (Vector RAG) vs. Path B (OKF v0.2) across 5 metrics: Extraction Accuracy (EM/F1), Latency, Token Efficiency, Preparation Effort, and Agent Reliability. | Sprint 5 (Jan 7 – Jan 15\) |
+| Design and development | Benchmark generator, extraction, Path A, Path B, ReAct agent, approval gate, action/audit engine, and UI. | Sprints 1–4A (Nov 4 – Dec 22\); final integration in Sprint 4B (from Jan 8\) |
+| Demonstration | Mid-review prototype demo of the ReAct agent and HITL gate (Sprint 3); pilot end-to-end run on 2–3 packages (Sprint 4A); integrated end-to-end execution on the full benchmark (Sprint 4B). | Sprints 3–4B (Dec 2 – Dec 22; from Jan 8\) |
+| Evaluation | Controlled experimental comparison of Path A (Vector RAG) vs. Path B (OKF v0.2) across 5 criteria: field accuracy (EM) and flag detection (precision/recall/F1), latency, context-token efficiency, preparation effort, and agent reliability. | Sprint 5 (Jan 8 – Jan 15\) |
 | Communication | Final APMG research report (Chapters 1–6), scientific project poster, local codebase release, and live software presentation. | Sprint 6 (Jan 16 – Jan 22\) |
 
 ## **6.2 Experimental setup**
@@ -247,11 +210,11 @@ The generator—not the agent—defines the ground truth. Each package is valida
 
 ### **Experimental conditions**
 
-Every package is processed through both Path A and Path B using the same extraction output, language model (Qwen3-1.7B), agent prompt, deterministic tools, output schema, and run settings (temperature 0, fixed seed, maximum 10 steps). The retrieval paradigm is the treatment: Path A uses vector similarity retrieval; Path B uses OKF concept navigation. Retrieval interactions and navigation steps are counted as part of each path’s cost. The study does not assume identical internal retrieval operations.
+Every package is processed through both Path A and Path B using the same extraction configuration (each pipeline extracts independently from the raw files), language model (Qwen3-1.7B), agent prompt, deterministic tools, output schema, and run settings (temperature 0, fixed seed, maximum 10 steps). The retrieval paradigm is the treatment: Path A uses vector similarity retrieval; Path B uses OKF concept navigation. Retrieval interactions and navigation steps are counted as part of each path’s cost. The study does not assume identical internal retrieval operations.
 
 ### **Repetitions and hardware**
 
-Each package is run three times per path. Accuracy is summarized across runs and latency is reported as the median. All runs use the same machine. A warm-up run is discarded to reduce model-loading effects. Exact hardware (CPU, GPU, RAM) and software versions are recorded in the final report. If repeated runs are identical under fixed settings, this is reported rather than interpreted as independent variability.
+Each package is run three times per path. Accuracy is summarized across runs and latency is reported as the median. All runs use the same machine and are executed sequentially, one request at a time, with Ollama’s parallel request handling disabled (OLLAMA\_NUM\_PARALLEL=1). This prevents concurrent load from distorting latency measurements and prevents request batching from altering model outputs under the fixed-seed setting. A warm-up run is discarded to reduce model-loading effects. Exact hardware (CPU, GPU, RAM) and software versions are recorded in the final report. If repeated runs are identical under fixed settings, this is reported rather than interpreted as independent variability.
 
 ### **Data sources**
 
@@ -263,7 +226,7 @@ Five criteria address the three sub-questions. Criteria 1–4 compare retrieval 
 
 | Criterion | What is measured | How it is measured | RQ |
 | :---- | :---- | :---- | :---- |
-| 1\. Field, rule, and evidence accuracy | Correctness of extracted values, calculations, cited clauses, and raised flags. | Exact Match (EM) per field and calculation against ground truth; clause citation counts as correct only when document and page match; precision, recall, and F1 for flags (price, quantity, surcharge, missing document) across packages. | 1 |
+| 1\. Field, rule, and evidence accuracy | Correctness of extracted values, calculations, cited clauses, and raised flags. | Exact Match (EM) per field and calculation against ground truth; clause citation counts as correct only when document and page match; precision, recall, and F1 for flags (price, quantity, line total, surcharge, missing document) across packages. | 1 |
 | 2\. Latency | Time for a complete verification. | Wall-clock time from run start to recommendation (median of three runs), plus agent/tool steps. Path B navigation time is included in its total; Path A index-search time is additionally reported. | 1 |
 | 3\. Context-token efficiency | Input tokens processed by the model. | Total input tokens per verification and input tokens per correctly extracted field, as reported by Ollama. | 1 |
 | 4\. Preparation and implementation effort | Work required to prepare each retrieval paradigm. | Engineering hours in the sprint log, build time, and storage size of the FAISS index and OKF bundle. | 1 |
@@ -275,13 +238,13 @@ Sub-question 3 is answered through a post-evaluation assignment recommendation, 
 
 ## **6.5 Analysis procedure**
 
-6. Run each package through both retrieval paradigms three times, after a discarded warm-up run.  
-7. Use an evaluation script to read the audit records and ground-truth files and compute all measures.  
-8. Report results per path, document type, and error type: means for accuracy and token use, medians for latency.  
-9. Compare results package by package. Because the corpus is small, interpret results descriptively and do not claim statistical significance.  
-10. Assign each incorrect result a cause (retrieval miss, wrong tool use, invalid output format, incorrect calculation, or wrong clause) to explain observed differences.  
-11. Review audit records for flagged packages to confirm that calculations and cited clauses can be verified by a human reader.  
-12. Test the approval gate by verifying that no final decision is written before the approval function is called.
+1. Run each package through both retrieval paradigms three times, after a discarded warm-up run.  
+2. Use an evaluation script to read the audit records and ground-truth files and compute all measures.  
+3. Report results per path, document type, and error type: means for accuracy and token use, medians for latency.  
+4. Compare results package by package. Because the corpus is small, interpret results descriptively and do not claim statistical significance.  
+5. Assign each incorrect result a cause (retrieval miss, wrong tool use, invalid output format, incorrect calculation, or wrong clause) to explain observed differences.  
+6. Review audit records for flagged packages to confirm that calculations and cited clauses can be verified by a human reader.  
+7. Test the approval gate by verifying that no final decision is written before the approval function is called.
 
 ## **6.6 Explicit system and pipeline limitations**
 
@@ -289,21 +252,17 @@ Sub-question 3 is answered through a post-evaluation assignment recommendation, 
 * Scanned documents: Tesseract OCR is available as a fallback at approximately 300 DPI. The benchmark uses digital documents; OCR quality is not evaluated. Severely degraded or handwritten documents are excluded.  
 * Local hardware and model: A small open-source model (≤ 2B parameters) served locally through Ollama constrains context capacity and multi-step reasoning. Incorrect tool calls or premature navigation stops are counted as errors.  
 * Benchmark size and variety: The benchmark contains 20–30 packages generated from 1–2 seed templates. Layout variety is limited; findings describe this corpus and are not statistical evidence for other collections.  
+* Model scale: Larger models (e.g., 4B or 8B parameters) are deliberately not evaluated. The accuracy–compute trade-off of model scaling is well established (Kaplan et al., 2020); this study instead isolates the effect of the retrieval paradigm at a fixed small model size.  
 * Configuration dependence: Results apply to Qwen3-1.7B, the selected embedding model, Path A settings (500-token chunks, 50-token overlap, top-5 retrieval), and the selected OKF bundle structure. Other configurations may produce different results.  
 * Scope of OKF: OKF was designed for organizational knowledge about data and systems. Its use for procurement contracts is tested as a research hypothesis.  
-* Domain schema: Validation covers three-way matching, price and quantity discrepancies, line-total calculations, and MSA surcharge checking. Tax-rule validation and multi-currency conversion are outside the current scope and reserved for future work.
+* Domain schema: Validation covers three-way matching, price and quantity discrepancies, line-total calculations, and MSA surcharge checking. Tax-rate fields are extracted and format-validated by the Pydantic schemas, but tax-rule validation (e.g., recomputing tax amounts against the applicable rate) and multi-currency conversion are outside the current scope and reserved for future work.
 
-## **References cited in Section 6**
 
-Hevner, A. R., March, S. T., Park, J., & Ram, S. (2004). Design science in information systems research. MIS Quarterly, 28(1), 75–105.
-
-Peffers, K., Tuunanen, T., Rothenberger, M. A., & Chatterjee, S. (2007). A design science research methodology for information systems research. Journal of Management Information Systems, 24(3), 45–77.
-
-**7\. Data Collection & Benchmark Generation Methods (Allen Smith)**
+# **7\. Data Collection & Benchmark Generation Methods (Allen Smith)**
 
 Following the Design Science Research approach described by Hevner et al. (2004) and Peffers et al. (2007), this project combines the programmatic generation of a controlled experimental benchmark with secondary literature synthesis. The benchmark is designed to evaluate the performance of the two retrieval paths, Standard Vector RAG (Path A) and OKF v0.2 Concept Navigation (Path B), under the same experimental conditions.
 
-**7.1 Primary Data Collection and Benchmark Generation**
+## **7.1 Primary Data Collection and Benchmark Generation**
 
 The primary data consists of a benchmark of **20–30 procurement document packages**. Each package represents a supplier invoice verification scenario and contains a combination of purchase orders (POs), delivery notes, vendor invoices, and, where applicable, multi-page Master Service Agreements (MSAs).
 
@@ -317,23 +276,23 @@ The benchmark generation process follows these steps:
    * **Compliant reference cases:** Invoice values and quantities match the purchase order and recorded goods receipt, and applicable MSA terms are respected.  
    * **Quantity variance cases:** The invoiced quantity differs from the quantity recorded on the delivery note.  
    * **Price variance cases:** The invoice unit price differs from the agreed PO price or applicable MSA rate.  
-   * **Line-total variance cases:** The invoiced line total does not match the expected calculation based on quantity and unit price.  
+   * **Line-total variance cases:** The invoiced line total does not match the expected calculation based on quantity and unit price. These cases are expected to raise FLAGGED\_LINE\_TOTAL\_MISMATCH.  
    * **MSA surcharge compliance cases:** An invoice includes a surcharge that conflicts with the applicable MSA clause, or a surcharge is consistent with the specified contractual terms.  
    * **Missing-document cases:** A required document, such as a purchase order or delivery note, is absent from the package.  
 4. **Ground-Truth Specification:** Create a structured ground-truth record for every benchmark package. This record contains the expected values and calculations, the injected discrepancy type (if any), the relevant source documents and page references, the applicable MSA clause where relevant, and the expected agent recommendation. The ground truth is established independently of the agent's output and serves as the reference for evaluation.  
-5. **Benchmark Consistency:** Ensure that the same benchmark packages and extracted document content are used for both Path A and Path B. Each package is processed through both retrieval paths, enabling a controlled comparison under the same input conditions.
+5. **Benchmark Consistency:** Ensure that the same benchmark packages and the identical extraction configuration are used for both Path A and Path B. Each package is processed through both retrieval paths, enabling a controlled comparison under the same input conditions.
 
-The benchmark focuses on price, quantity, line-total, and MSA surcharge verification. Tax validation and multi-currency conversion are excluded from the current evaluation scope.
+The benchmark focuses on price, quantity, line-total, and MSA surcharge verification. Tax-rule validation and multi-currency conversion are excluded from the current evaluation scope; tax-rate fields are extracted but not rule-checked.
 
-**7.2 Document Preparation and Data Processing**
+## **7.2 Document Preparation and Data Processing**
 
 Before retrieval, the benchmark documents undergo the extraction process described in Section 5\. Digital documents are processed using PyMuPDF, while scanned documents may be handled through the Tesseract OCR fallback.
 
-The benchmark evaluation uses digital documents so that OCR quality does not become an additional experimental variable. Extraction is performed once per package, and the resulting structured records and cleaned text are supplied to both retrieval paths.
+The benchmark evaluation uses digital documents so that OCR quality does not become an additional experimental variable. Each retrieval path performs its own extraction from the raw package files using identical tools and settings, so both paths operate independently end-to-end while obtaining the same structured records and cleaned text.
 
 Source document names and page references are retained to support evidence tracing and audit-log generation.
 
-**7.3 Secondary Data Collection and Literature Synthesis**
+## **7.3 Secondary Data Collection and Literature Synthesis**
 
 Secondary data collection consists of reviewing the academic literature and technical documentation that inform the system's design and evaluation. These sources provide the theoretical and technical foundation for the research questions and experimental setup.
 
@@ -342,12 +301,12 @@ The literature synthesis covers:
 * **Retrieval-Augmented Generation (RAG):** Lewis et al. (2020) provide the foundation for Path A, which retrieves relevant text chunks from a vector index to support the agent's responses.  
 * **Dense Retrieval:** Karpukhin et al. (2020) support the use of dense passage retrieval, while Nussbaum et al. (2024) inform the embedding model selection.  
 * **ReAct Agent Architecture:** Yao et al. (2023) provide the basis for the agent's iterative interaction with retrieval and deterministic calculation tools.  
-* **Agentic Document Workflows:** Relevant literature and technical documentation inform the design of the document verification workflow and tool-use process.  
+* **Agentic Document Workflows:** Singh et al. (2025) informs the design of the stateful document verification workflow and tool-use process.  
 * **Open Knowledge Format (OKF v0.2):** Google Cloud (2026) provides the specification used to organize documents into Markdown concept files with YAML metadata and navigable links for Path B.
 
 The reviewed literature supports the design decisions and interpretation of the experiment. The primary empirical results, however, are obtained from executing the system on the generated benchmark rather than from the literature review.
 
-**7.4 Relationship to the Comparative Evaluation**
+## **7.4 Relationship to the Comparative Evaluation**
 
 The benchmark provides a common basis for comparing Path A and Path B across the evaluation dimensions specified in Section 6, including discrepancy-detection performance, evidence quality, retrieval or navigation cost, and execution latency.
 
@@ -357,13 +316,13 @@ Sub-question 3 is addressed **after the comparative evaluation** by deriving rec
 
 The benchmark therefore serves as the shared experimental dataset for the comparative evaluation and the subsequent evidence-based routing recommendations.
 
-## **8\. Justification of Research Methods & Data Collection Approach (Navya Gupta)**
+# **8\. Justification of Research Methods & Data Collection Approach (Navya Gupta)**
 
 The combination of Design Science Research, programmatic benchmark generation, and controlled comparative evaluation is justified by the project's objective of developing and empirically evaluating the Agent On Duty system. The methodological approach follows Hevner et al. (2004) and Peffers et al. (2007), which provide the foundation for constructing and evaluating an information systems artifact.
 
 1. **Suitability of Programmatic Benchmark Generation:** The project requires a controlled dataset containing both compliant procurement document packages and predefined discrepancies. Programmatically generating 20–30 packages from 1–2 seed templates enables systematic variation of quantities, unit prices, line totals, and MSA surcharge conditions. Because the injected discrepancies are defined in advance, each package can be associated with a structured ground-truth record. This supports objective evaluation of the agent's recommendations and evidence without relying on manually labelled outputs. The benchmark's limited size and template variety are acknowledged as constraints on generalizability.
 
-2. **Controlled Comparative Evaluation:** The research compares Standard Vector RAG (Path A) and OKF v0.2 Concept Navigation (Path B) using the same document packages and extraction output. The central agent, language model, prompts, deterministic tools, and run settings are held constant. This controlled setup allows observed differences in performance to be attributed primarily to the retrieval-path treatment, while recognizing that Path B's model-directed navigation is part of its retrieval process and contributes to its overall execution cost.
+2. **Controlled Comparative Evaluation:** The research compares Standard Vector RAG (Path A) and OKF v0.2 Concept Navigation (Path B) using the same document packages and an identical extraction configuration, with each pipeline running independently end-to-end. The central agent, language model, prompts, deterministic tools, and run settings are held constant. This controlled setup allows observed differences in performance to be attributed primarily to the retrieval-path treatment, while recognizing that Path B's model-directed navigation is part of its retrieval process and contributes to its overall execution cost.
 
 3. **Alignment Between Evaluation Metrics and Research Questions:** The evaluation criteria are selected to address the research questions established in Section 2\. Extraction and rule accuracy are measured using Exact Match, Precision, Recall, and F1. Efficiency is assessed through latency, agent steps, context-token consumption, and preparation effort. Agent reliability and governance are evaluated through schema-valid outputs, invalid tool calls, evidence completeness, cited-clause correctness, and adherence to the human approval gate. This combination assesses both the technical performance of the retrieval paths and the reliability of the overall verification workflow.
 
@@ -371,7 +330,9 @@ The combination of Design Science Research, programmatic benchmark generation, a
 
 5. **Scope and Interpretation of Results:** The method is designed to evaluate the proposed system under a defined local configuration rather than to establish universal superiority of one retrieval paradigm. Findings are interpreted within the limits of the benchmark size, seed-template variety, selected language model, and implementation settings. The results also provide the empirical basis for the post-evaluation retrieval-path recommendations in Sub-question 3; they do not constitute an evaluation of a dynamic routing agent.
 
-#### ***9\.*****Research Schedule & Gantt Chart Lifecycle (Allen Smith)** ***Detailed Milestone & Sprint Breakdown***
+# **9\. Research Schedule & Gantt Chart Lifecycle (Allen Smith)**
+
+## **Detailed Milestone & Sprint Breakdown**
 
 * **Stage 1: Proposal Finalization & Submission** *(Oct 9 – Nov 3, 2026\)*   
   * **Tasks**: Complete problem definition, research questions, theoretical framework, system architecture, and methodology.  
@@ -388,19 +349,20 @@ The combination of Design Science Research, programmatic benchmark generation, a
 * **Sprint 3: ReAct Agent Loop, Action Harness & HITL Gate** *(Dec 2 – Dec 15, 2026 / 2 Weeks)*   
   * **Tasks**:   
     * Develop the ReAct reasoning loop in Python with Pydantic tool schemas for deterministic numerical checks (price, quantity, line total).  
-    * Implement local SQLite database action writers (APPROVED, REJECTED, FLAGGED\_\*) and JSON audit log generation.  
-    * Program the mandatory **Human-in-the-Loop (HITL) Interrupt Gate** to pause execution at PENDING\_REVIEW.  
+    * Implement the local SQLite store: agent recommendations saved as PENDING\_REVIEW with their FLAGGED\_\* flags, and a separate manager-only decision writer (APPROVED, REJECTED, OVERRIDDEN); generate one JSON audit record per verification.  
+    * Program the mandatory **Human-in-the-Loop (HITL) approval gate**: the agent has no write access to final decisions; only the manager approval function can record them.  
 * **Sprint 4A: Web UI & Pre-Holiday Integration** *(Dec 16 – Dec 22, 2026 / 1 Week)*   
   * **Tasks**:   
-    * Develop the Streamlit web app: package upload view, live ReAct trace visualizer, and manager approval dashboard.  
+    * Develop the Streamlit web app: package upload view, verification-progress view (tool calls, retrieved evidence, calculation results), and manager approval dashboard.  
     * Conduct initial integration sanity checks across tools and UI screens prior to the holiday pause.  
+    * Run a pilot benchmark on 2–3 packages through both retrieval paths to surface integration issues before the holiday pause and de-risk the shortened January evaluation window.  
 * **❄️ University Winter Holiday Pause** *(Dec 23, 2026 – Jan 7, 2027 / 2.5 Weeks)*   
   * **Status**: Official university holiday. Development is paused.  
 * **Sprint 4B & 5: System Integration & Empirical Benchmarking** *(Jan 8 – Jan 15, 2027 / \~1.2 Weeks)*   
   * **Tasks**:   
     * Resume active development; complete full system integration across extraction, retrieval paths, ReAct engine, and UI.  
-    * Execute the controlled experimental evaluation across all 20–30 benchmark packages (3 runs per package per path).  
-    * Compute quantitative metrics: Exact Match (EM), F1-score, wall-clock latency, context token efficiency, and schema validation reliability.  
+    * Execute the controlled experimental evaluation across all 20–30 benchmark packages (3 sequential runs per package per path, one request at a time).  
+    * Compute quantitative metrics: field Exact Match (EM), flag precision/recall/F1, wall-clock latency, context-token efficiency, preparation effort, and agent reliability (schema validity, evidence completeness, approval-gate adherence).  
     * Formulate post-evaluation retrieval path recommendations (Sub-question 3).  
 * **Sprint 6: Final Documentation, Poster & Live Demo** *(Jan 16 – Jan 22, 2027 / 1 Week)*   
   * **Tasks**:   
@@ -409,3 +371,58 @@ The combination of Design Science Research, programmatic benchmark generation, a
     * Package the local codebase and prepare the live software demonstration.  
     * **Key Milestone**: **Final Project Submission & Live Presentation** on **Friday, January 22, 2027**.
 
+[[GANTT]]
+
+# **10\. References**
+
+## **Academic References**
+
+Baxter, G., & Sommerville, I. (2011). Socio-technical systems: From design methods to systems engineering. Interacting with Computers, 23(1), 4–17.
+
+Clegg, C. W. (2000). Socio-technical principles for system design. Applied Ergonomics, 31(5), 463–477.
+
+Hevner, A. R., March, S. T., Park, J., & Ram, S. (2004). Design science in information systems research. MIS Quarterly, 28(1), 75–105.
+
+Johnson, J., Douze, M., & Jégou, H. (2021). Billion-scale similarity search with GPUs. IEEE Transactions on Big Data, 7(3), 535–547.
+
+Kaplan, J., McCandlish, S., Henighan, T., Brown, T. B., Chess, B., Child, R., Gray, S., Radford, A., Wu, J., & Amodei, D. (2020). Scaling laws for neural language models. arXiv preprint arXiv:2001.08361.
+
+Karpukhin, V., Oğuz, B., Min, S., Lewis, P., Wu, L., Edunov, S., Chen, D., & Yih, W. (2020). Dense passage retrieval for open-domain question answering. In Proceedings of EMNLP 2020 (pp. 6769–6781). Association for Computational Linguistics.
+
+Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. Advances in Neural Information Processing Systems (NeurIPS), 33, 9459–9474.
+
+Nassar, A., Marafioti, A., Omenetti, M., Lysak, M., Livathinos, N., Auer, C., Morin, L., Teixeira de Lima, R., Kim, Y., Gurbuz, A. S., Dolfi, M., Farré, M., & Staar, P. W. J. (2025). SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) (pp. 21972–21983).
+
+Nussbaum, Z., Morris, J. X., Duderstadt, B., & Mulyar, A. (2024). Nomic Embed: Training a reproducible long context text embedder. arXiv preprint arXiv:2402.01613.
+
+Peffers, K., Tuunanen, T., Rothenberger, M. A., & Chatterjee, S. (2007). A design science research methodology for information systems research. Journal of Management Information Systems, 24(3), 45–77.
+
+Singh, A., et al. (2025). Agentic retrieval-augmented generation: A survey on agentic RAG. arXiv preprint arXiv:2501.09136.
+
+Smith, R. (2007). An overview of the Tesseract OCR engine. Ninth International Conference on Document Analysis and Recognition (ICDAR), 2, 629–633.
+
+Trist, E. L., & Bamforth, K. W. (1951). Some social and psychological consequences of the longwall method of coal-getting. Human Relations, 4(1), 3–38.
+
+Yang, A., et al. (2025). Qwen3 technical report. arXiv preprint arXiv:2505.09388.
+
+Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). ReAct: Synergizing reasoning and acting in language models. International Conference on Learning Representations (ICLR).
+
+## **Software, Specifications and Technical Reports**
+
+Exact software versions used in the experiments are recorded in the final report.
+
+Artifex Software. (2026). PyMuPDF \[Computer software\]. GitHub. https\://github.com/pymupdf/PyMuPDF
+
+Gerganov, G., et al. (2023). llama.cpp: LLM inference in C/C++ \[Computer software\]. GitHub. https\://github.com/ggml-org/llama.cpp
+
+Google Cloud. (2026). Open Knowledge Format (OKF) specification, version 0.2 \[Technical specification\].
+
+Ollama. (2026). Ollama \[Computer software\]. GitHub. https\://github.com/ollama/ollama
+
+Pydantic. (2026). Pydantic: Data validation using Python type hints \[Computer software\]. GitHub. https\://github.com/pydantic/pydantic
+
+Schluntz, E., & Zhang, B. (2024). Building effective agents \[Technical report\]. Anthropic. https\://www\.anthropic.com/engineering/building-effective-agents
+
+SQLite Consortium. (2026). SQLite \[Computer software\]. https\://www\.sqlite.org
+
+Streamlit. (2026). Streamlit \[Computer software\]. GitHub. https\://github.com/streamlit/streamlit

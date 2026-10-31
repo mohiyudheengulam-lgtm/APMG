@@ -51,6 +51,7 @@ class Invoice(BaseModel):
     currency: str = "EUR"
     lines: list[LineItem]
     surcharges: list[Surcharge] = []
+    tax_rate: Decimal | None = Field(default=None, ge=0, le=100)  # percent; format-validated only, no tax-rule check
     source: SourceRef
 
 
@@ -64,6 +65,7 @@ class MSAClause(BaseModel):
 class Flag(StrEnum):
     PRICE_MISMATCH = "FLAGGED_PRICE_MISMATCH"
     QUANTITY_MISMATCH = "FLAGGED_QUANTITY_MISMATCH"
+    LINE_TOTAL_MISMATCH = "FLAGGED_LINE_TOTAL_MISMATCH"
     SURCHARGE = "FLAGGED_SURCHARGE"
     MISSING_DOCUMENT = "FLAGGED_MISSING_DOCUMENT"
 
