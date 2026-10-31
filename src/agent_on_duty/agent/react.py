@@ -93,7 +93,14 @@ class SearchArgs(BaseModel):
 
 
 class ReadArgs(BaseModel):
-    path: str
+    paths: list[str] = Field(default_factory=list, max_length=5)
+    path: str | None = None  # a single path is accepted too
+
+    def all_paths(self) -> list[str]:
+        out = list(self.paths) + ([self.path] if self.path else [])
+        if not out:
+            raise ValueError("give 'paths' (up to 5 files)")
+        return out[:5]
 
 
 def _tool(name: str, description: str, model: type[BaseModel]) -> dict:
@@ -129,19 +136,29 @@ class PathATools:
 
 class PathBTools:
     name = "B"
-    tools = [_tool("read", "Open a file of the package knowledge bundle. Start with 'index.md' and follow the "
-                   "Markdown links (paths are relative to the file you came from's folder; use full paths like "
-                   "'msa/index.md').", ReadArgs)]
+    tools = [_tool("read", "Open up to 5 files of the package knowledge bundle at once. Files: 'index.md' "
+                   "(package overview), 'invoice.md', 'purchase_order.md', 'delivery_note.md', 'goods_receipt.md', "
+                   "'guideline.md', 'msa/index.md' (list of contract sections) and the 'msa/...' section files linked "
+                   "from it. Use full paths like 'msa/index.md'.", ReadArgs)]
 
     def __init__(self, bundle: PathBBundle):
         self.bundle = bundle
 
     def call(self, name: str, args: dict) -> tuple[str, set[tuple[str, int]]]:
-        path = ReadArgs(**args).path
-        text, meta = self.bundle.read(path), self.bundle.meta(path)
-        pages = meta.get("pages") or ([meta["page"]] if "page" in meta else [])
-        seen = {(meta["source_document"], int(pg)) for pg in pages} if "source_document" in meta else set()
-        return text, seen
+        texts, seen = [], set()
+        for path in ReadArgs(**args).all_paths():
+            try:
+                text, meta = self.bundle.read(path), self.bundle.meta(path)
+            except (FileNotFoundError, ValueError):
+                texts.append(f"=== {path} ===\nError: no such file")
+                continue
+            pages = meta.get("pages") or ([meta["page"]] if "page" in meta else [])
+            if "source_document" in meta:
+                seen |= {(meta["source_document"], int(pg)) for pg in pages}
+            texts.append(f"=== {path} ===\n{text}")
+        if not seen and all(t.endswith("Error: no such file") for t in texts):
+            raise FileNotFoundError(", ".join(ReadArgs(**args).all_paths()))
+        return "\n\n".join(texts), seen
 
 
 # ------------------------------------------------------------------ run state
@@ -181,8 +198,9 @@ class AgentRun:
 
 
 class Verifier:
-    def __init__(self, package_id: str, retrieval: PathATools | PathBTools):
+    def __init__(self, package_id: str, retrieval: PathATools | PathBTools, documents: list[dict] | None = None):
         self.retrieval = retrieval
+        self.documents = documents or []
         self.run = AgentRun(package_id=package_id, path=retrieval.name)
         self.docs: dict[str, PurchaseOrder | GoodsReceipt | Invoice] = {}
         self.missing: set[str] = set()
@@ -288,11 +306,19 @@ class Verifier:
             self.run.invalid_tool_calls += 1
             return f"Error: invalid call to {name}: {str(e)[:400]}"
 
+    def _task(self) -> str:
+        """First message — identical for both paths: the package's files and their detected document types."""
+        lines = [f"Verify package {self.run.package_id}."]
+        if self.documents:
+            lines.append("Documents in this package:")
+            lines += [f"- {d['file']} ({d['type'].replace('_', ' ')})" for d in self.documents]
+        return "\n".join(lines)
+
     def verify(self, client: ollama.Client | None = None, on_step: Callable[[Step], None] | None = None) -> AgentRun:
         client = client or ollama.Client()
         tools = self.retrieval.tools + COMMON_TOOLS
         messages = [{"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": f"Verify package {self.run.package_id}."}]
+                    {"role": "user", "content": self._task()}]
         t_start = time.perf_counter()
         try:
             for step in range(1, MAX_STEPS + 1):

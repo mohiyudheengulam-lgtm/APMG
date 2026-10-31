@@ -67,6 +67,7 @@ class PathAIndex:
             "path": "A", "package_id": package_dir.name, "chunks": len(chunks),
             "extract_seconds": round(t_extract, 3), "build_seconds": round(time.perf_counter() - t0, 3),
             "storage_bytes": sum(f.stat().st_size for f in out_dir.iterdir() if f.name != "build.json"),
+            "documents": [{"file": d.filename, "type": d.doc_type.value} for d in pkg.documents],
         }
         (out_dir / "build.json").write_text(json.dumps(stats, indent=1))
         return stats
