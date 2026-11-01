@@ -153,7 +153,7 @@ export async function api<T>(url: string, init?: RequestInit): Promise<T> {
 
 /** Fetch + optional polling. `url` null skips. */
 export function useApi<T>(url: string | null, pollMs?: number) {
-  const [state, setState] = useState<{ url: string | null; data?: T; error?: string }>({ url: null });
+  const [state, setState] = useState<{ url: string | null; data?: T; error?: string; fails?: number }>({ url: null });
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -161,8 +161,17 @@ export function useApi<T>(url: string | null, pollMs?: number) {
     let alive = true;
     const load = () =>
       api<T>(url).then(
-        (data) => alive && setState({ url, data }),
-        (e) => alive && setState((s) => ({ url, data: s.url === url ? s.data : undefined, error: e instanceof Error ? e.message : String(e) })),
+        (data) => alive && setState({ url, data, fails: 0 }),
+        // keep showing the last data on a single failed poll; report an error once it fails twice in a row
+        (e) =>
+          alive &&
+          setState((s) => {
+            const same = s.url === url;
+            const fails = (same ? s.fails ?? 0 : 0) + 1;
+            const data = same ? s.data : undefined;
+            const error = data !== undefined && fails < 2 ? undefined : e instanceof Error ? e.message : String(e);
+            return { url, data, fails, error };
+          }),
       );
     load();
     const t = pollMs ? setInterval(load, pollMs) : undefined;
