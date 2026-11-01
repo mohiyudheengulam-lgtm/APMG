@@ -34,7 +34,7 @@ This repository currently contains the project skeleton. Module-specific impleme
 A complete working prototype lives in this repository root (`src/`, `scripts/`, `web/`, `tests/`).
 It follows the revised exposé (`docs/expose.md`): Qwen3-1.7B via Ollama, Path A = FAISS vector RAG,
 Path B = OKF v0.2 bundles, plain-Python ReAct agent, SQLite + JSON audit, human approval gate, Next.js UI.
-Start with `CONTEXT.md`, `SETUP.md` and the visual walkthrough `docs/system-overview.html`.
+Start with `docs/TEAM_MANUAL.md` (install, usage, who owns what), `CONTEXT.md`, `SETUP.md` and the visual walkthrough `docs/system-overview.html`.
 
 Local agentic procurement verification — see `CONTEXT.md` and `docs/expose.md`.
 
