@@ -62,3 +62,14 @@ ollama-test-*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Agent On Duty prototype
+*.pyc
+data/packages/*
+!data/packages/.gitkeep
+data/index/
+audit/
+results/
+data/uploads/
+.streamlit/secrets.toml
+data/seed_previews/

@@ -1,0 +1,530 @@
+{
+  "package": "seed_02_electronic_components",
+  "data_origin": "synthetic test data",
+  "currency": "EUR",
+  "expected_recommendation": "NO_DISCREPANCY",
+  "expected_flags": [],
+  "documents": {
+    "purchase_order": {
+      "file": "purchase_order.pdf",
+      "pages": 1,
+      "header": {
+        "po_number": "4500021873",
+        "po_date": "2026-10-12",
+        "msa_number": "RV-QE-SC/2026/003",
+        "requested_delivery_date": "2026-10-22",
+        "issuer": {
+          "name": "Quentrion Elektronik GmbH",
+          "vat_id": "DE271609384"
+        },
+        "recipient": {
+          "name": "Sarvelin Components GmbH",
+          "vat_id": "DE305882471"
+        }
+      },
+      "line_items": [
+        {
+          "position": 10,
+          "item_no": "SC-C0603-104X50",
+          "description": "Multilayer ceramic capacitor 100 nF, 50 V, X7R, case 0603, reel of 4,000",
+          "unit": "reel",
+          "quantity": 20,
+          "unit_price": "9.60",
+          "line_total": "192.00"
+        },
+        {
+          "position": 20,
+          "item_no": "SC-R0603-10K0F",
+          "description": "Thick-film chip resistor 10 kOhm, 1 %, 0.1 W, case 0603, reel of 5,000",
+          "unit": "reel",
+          "quantity": 30,
+          "unit_price": "4.25",
+          "line_total": "127.50"
+        },
+        {
+          "position": 30,
+          "item_no": "SC-MCU-M4-512L64",
+          "description": "32-bit microcontroller, M4 core, 512 KB flash, 128 KB RAM, LQFP-64",
+          "unit": "pcs",
+          "quantity": 1500,
+          "unit_price": "4.87",
+          "line_total": "7305.00"
+        },
+        {
+          "position": 40,
+          "item_no": "SC-LDO-33-SOT223",
+          "description": "LDO voltage regulator 3.3 V, 500 mA, SOT-223",
+          "unit": "pcs",
+          "quantity": 3000,
+          "unit_price": "0.32",
+          "line_total": "960.00"
+        },
+        {
+          "position": 50,
+          "item_no": "SC-HDR-2X10-254",
+          "description": "Pin header 2 x 10 pins, pitch 2.54 mm, THT, gold-plated",
+          "unit": "pcs",
+          "quantity": 2000,
+          "unit_price": "0.21",
+          "line_total": "420.00"
+        },
+        {
+          "position": 60,
+          "item_no": "SC-USBC-16SMT",
+          "description": "USB Type-C receptacle, 16 pins, SMT, mid-mount",
+          "unit": "pcs",
+          "quantity": 1500,
+          "unit_price": "0.58",
+          "line_total": "870.00"
+        },
+        {
+          "position": 70,
+          "item_no": "SC-XTL-16M-3225",
+          "description": "Quartz crystal 16.000 MHz, 12 pF load, 3.2 x 2.5 mm SMD",
+          "unit": "pcs",
+          "quantity": 1500,
+          "unit_price": "0.27",
+          "line_total": "405.00"
+        },
+        {
+          "position": 80,
+          "item_no": "SC-ECAP-470U25",
+          "description": "Aluminium electrolytic capacitor 470 µF, 25 V, 105 °C, 10 x 12.5 mm",
+          "unit": "pcs",
+          "quantity": 2500,
+          "unit_price": "0.14",
+          "line_total": "350.00"
+        }
+      ],
+      "totals": {
+        "net_total": "10629.50",
+        "vat_rate_percent": "19.00",
+        "vat_amount": "2019.61",
+        "gross_total": "12649.11"
+      }
+    },
+    "delivery_note": {
+      "file": "delivery_note.pdf",
+      "pages": 1,
+      "header": {
+        "delivery_note_number": "DN/2610/00487",
+        "delivery_date": "2026-10-21",
+        "po_number": "4500021873",
+        "issuer": {
+          "name": "Sarvelin Components GmbH",
+          "vat_id": "DE305882471"
+        },
+        "recipient": {
+          "name": "Quentrion Elektronik GmbH",
+          "vat_id": "DE271609384"
+        },
+        "packages": "4 cartons"
+      },
+      "line_items": [
+        {
+          "item_no": "SC-C0603-104X50",
+          "unit": "reel",
+          "quantity_ordered": 20,
+          "quantity_delivered": 20
+        },
+        {
+          "item_no": "SC-R0603-10K0F",
+          "unit": "reel",
+          "quantity_ordered": 30,
+          "quantity_delivered": 30
+        },
+        {
+          "item_no": "SC-MCU-M4-512L64",
+          "unit": "pcs",
+          "quantity_ordered": 1500,
+          "quantity_delivered": 1500
+        },
+        {
+          "item_no": "SC-LDO-33-SOT223",
+          "unit": "pcs",
+          "quantity_ordered": 3000,
+          "quantity_delivered": 3000
+        },
+        {
+          "item_no": "SC-HDR-2X10-254",
+          "unit": "pcs",
+          "quantity_ordered": 2000,
+          "quantity_delivered": 2000
+        },
+        {
+          "item_no": "SC-USBC-16SMT",
+          "unit": "pcs",
+          "quantity_ordered": 1500,
+          "quantity_delivered": 1500
+        },
+        {
+          "item_no": "SC-XTL-16M-3225",
+          "unit": "pcs",
+          "quantity_ordered": 1500,
+          "quantity_delivered": 1500
+        },
+        {
+          "item_no": "SC-ECAP-470U25",
+          "unit": "pcs",
+          "quantity_ordered": 2500,
+          "quantity_delivered": 2500
+        }
+      ]
+    },
+    "goods_receipt": {
+      "file": "goods_receipt.pdf",
+      "pages": 1,
+      "header": {
+        "goods_receipt_number": "5000184227",
+        "receipt_date": "2026-10-22",
+        "po_number": "4500021873",
+        "delivery_note_number": "DN/2610/00487",
+        "receiving_clerk": "Svenja Kowalczyk",
+        "issuer": {
+          "name": "Quentrion Elektronik GmbH",
+          "vat_id": "DE271609384"
+        },
+        "supplier": {
+          "name": "Sarvelin Components GmbH",
+          "vat_id": "DE305882471"
+        }
+      },
+      "line_items": [
+        {
+          "item_no": "SC-C0603-104X50",
+          "unit": "reel",
+          "quantity_ordered": 20,
+          "quantity_received": 20
+        },
+        {
+          "item_no": "SC-R0603-10K0F",
+          "unit": "reel",
+          "quantity_ordered": 30,
+          "quantity_received": 30
+        },
+        {
+          "item_no": "SC-MCU-M4-512L64",
+          "unit": "pcs",
+          "quantity_ordered": 1500,
+          "quantity_received": 1500
+        },
+        {
+          "item_no": "SC-LDO-33-SOT223",
+          "unit": "pcs",
+          "quantity_ordered": 3000,
+          "quantity_received": 3000
+        },
+        {
+          "item_no": "SC-HDR-2X10-254",
+          "unit": "pcs",
+          "quantity_ordered": 2000,
+          "quantity_received": 2000
+        },
+        {
+          "item_no": "SC-USBC-16SMT",
+          "unit": "pcs",
+          "quantity_ordered": 1500,
+          "quantity_received": 1500
+        },
+        {
+          "item_no": "SC-XTL-16M-3225",
+          "unit": "pcs",
+          "quantity_ordered": 1500,
+          "quantity_received": 1500
+        },
+        {
+          "item_no": "SC-ECAP-470U25",
+          "unit": "pcs",
+          "quantity_ordered": 2500,
+          "quantity_received": 2500
+        }
+      ]
+    },
+    "invoice": {
+      "file": "invoice.pdf",
+      "pages": 1,
+      "header": {
+        "invoice_number": "IN26-118904",
+        "invoice_date": "2026-10-23",
+        "due_date": "2026-12-07",
+        "discount_deadline": "2026-11-02",
+        "po_number": "4500021873",
+        "delivery_note_number": "DN/2610/00487",
+        "msa_number": "RV-QE-SC/2026/003",
+        "issuer": {
+          "name": "Sarvelin Components GmbH",
+          "vat_id": "DE305882471"
+        },
+        "recipient": {
+          "name": "Quentrion Elektronik GmbH",
+          "vat_id": "DE271609384"
+        },
+        "supplier_iban": "DE30500619220071458830"
+      },
+      "line_items": [
+        {
+          "position": 10,
+          "item_no": "SC-C0603-104X50",
+          "description": "Multilayer ceramic capacitor 100 nF, 50 V, X7R, case 0603, reel of 4,000",
+          "unit": "reel",
+          "quantity": 20,
+          "unit_price": "9.60",
+          "line_total": "192.00"
+        },
+        {
+          "position": 20,
+          "item_no": "SC-R0603-10K0F",
+          "description": "Thick-film chip resistor 10 kOhm, 1 %, 0.1 W, case 0603, reel of 5,000",
+          "unit": "reel",
+          "quantity": 30,
+          "unit_price": "4.25",
+          "line_total": "127.50"
+        },
+        {
+          "position": 30,
+          "item_no": "SC-MCU-M4-512L64",
+          "description": "32-bit microcontroller, M4 core, 512 KB flash, 128 KB RAM, LQFP-64",
+          "unit": "pcs",
+          "quantity": 1500,
+          "unit_price": "4.87",
+          "line_total": "7305.00"
+        },
+        {
+          "position": 40,
+          "item_no": "SC-LDO-33-SOT223",
+          "description": "LDO voltage regulator 3.3 V, 500 mA, SOT-223",
+          "unit": "pcs",
+          "quantity": 3000,
+          "unit_price": "0.32",
+          "line_total": "960.00"
+        },
+        {
+          "position": 50,
+          "item_no": "SC-HDR-2X10-254",
+          "description": "Pin header 2 x 10 pins, pitch 2.54 mm, THT, gold-plated",
+          "unit": "pcs",
+          "quantity": 2000,
+          "unit_price": "0.21",
+          "line_total": "420.00"
+        },
+        {
+          "position": 60,
+          "item_no": "SC-USBC-16SMT",
+          "description": "USB Type-C receptacle, 16 pins, SMT, mid-mount",
+          "unit": "pcs",
+          "quantity": 1500,
+          "unit_price": "0.58",
+          "line_total": "870.00"
+        },
+        {
+          "position": 70,
+          "item_no": "SC-XTL-16M-3225",
+          "description": "Quartz crystal 16.000 MHz, 12 pF load, 3.2 x 2.5 mm SMD",
+          "unit": "pcs",
+          "quantity": 1500,
+          "unit_price": "0.27",
+          "line_total": "405.00"
+        },
+        {
+          "position": 80,
+          "item_no": "SC-ECAP-470U25",
+          "description": "Aluminium electrolytic capacitor 470 µF, 25 V, 105 °C, 10 x 12.5 mm",
+          "unit": "pcs",
+          "quantity": 2500,
+          "unit_price": "0.14",
+          "line_total": "350.00"
+        }
+      ],
+      "surcharges": [],
+      "totals": {
+        "net_total": "10629.50",
+        "vat_rate_percent": "19.00",
+        "vat_amount": "2019.61",
+        "gross_total": "12649.11",
+        "early_payment_discount_percent": "3.00",
+        "early_payment_discount_amount": "379.47",
+        "amount_payable_within_discount_period": "12269.64"
+      }
+    },
+    "msa": {
+      "file": "msa.pdf",
+      "pages": 16,
+      "number": "RV-QE-SC/2026/003",
+      "signing_date": "2026-02-24"
+    },
+    "purchasing_guideline": {
+      "file": "purchasing_guideline.pdf",
+      "pages": 3
+    }
+  },
+  "calculations": {
+    "line_totals": [
+      {
+        "item_no": "SC-C0603-104X50",
+        "formula": "20 x 9.60",
+        "line_total": "192.00"
+      },
+      {
+        "item_no": "SC-R0603-10K0F",
+        "formula": "30 x 4.25",
+        "line_total": "127.50"
+      },
+      {
+        "item_no": "SC-MCU-M4-512L64",
+        "formula": "1500 x 4.87",
+        "line_total": "7305.00"
+      },
+      {
+        "item_no": "SC-LDO-33-SOT223",
+        "formula": "3000 x 0.32",
+        "line_total": "960.00"
+      },
+      {
+        "item_no": "SC-HDR-2X10-254",
+        "formula": "2000 x 0.21",
+        "line_total": "420.00"
+      },
+      {
+        "item_no": "SC-USBC-16SMT",
+        "formula": "1500 x 0.58",
+        "line_total": "870.00"
+      },
+      {
+        "item_no": "SC-XTL-16M-3225",
+        "formula": "1500 x 0.27",
+        "line_total": "405.00"
+      },
+      {
+        "item_no": "SC-ECAP-470U25",
+        "formula": "2500 x 0.14",
+        "line_total": "350.00"
+      }
+    ],
+    "net_total": "10629.50",
+    "vat": {
+      "rate_percent": "19.00",
+      "formula": "10629.50 x 0.19 (ROUND_HALF_UP)",
+      "amount": "2019.61"
+    },
+    "gross_total": "12649.11",
+    "early_payment_discount": {
+      "percent": "3.00",
+      "base": "gross_total",
+      "amount": "379.47",
+      "payable_if_paid_by_deadline": "12269.64"
+    },
+    "three_way_match": [
+      {
+        "item_no": "SC-C0603-104X50",
+        "po_quantity": 20,
+        "received_quantity": 20,
+        "invoiced_quantity": 20,
+        "po_unit_price": "9.60",
+        "msa_unit_price": "9.60",
+        "invoiced_unit_price": "9.60",
+        "match": true
+      },
+      {
+        "item_no": "SC-R0603-10K0F",
+        "po_quantity": 30,
+        "received_quantity": 30,
+        "invoiced_quantity": 30,
+        "po_unit_price": "4.25",
+        "msa_unit_price": "4.25",
+        "invoiced_unit_price": "4.25",
+        "match": true
+      },
+      {
+        "item_no": "SC-MCU-M4-512L64",
+        "po_quantity": 1500,
+        "received_quantity": 1500,
+        "invoiced_quantity": 1500,
+        "po_unit_price": "4.87",
+        "msa_unit_price": "4.87",
+        "invoiced_unit_price": "4.87",
+        "match": true
+      },
+      {
+        "item_no": "SC-LDO-33-SOT223",
+        "po_quantity": 3000,
+        "received_quantity": 3000,
+        "invoiced_quantity": 3000,
+        "po_unit_price": "0.32",
+        "msa_unit_price": "0.32",
+        "invoiced_unit_price": "0.32",
+        "match": true
+      },
+      {
+        "item_no": "SC-HDR-2X10-254",
+        "po_quantity": 2000,
+        "received_quantity": 2000,
+        "invoiced_quantity": 2000,
+        "po_unit_price": "0.21",
+        "msa_unit_price": "0.21",
+        "invoiced_unit_price": "0.21",
+        "match": true
+      },
+      {
+        "item_no": "SC-USBC-16SMT",
+        "po_quantity": 1500,
+        "received_quantity": 1500,
+        "invoiced_quantity": 1500,
+        "po_unit_price": "0.58",
+        "msa_unit_price": "0.58",
+        "invoiced_unit_price": "0.58",
+        "match": true
+      },
+      {
+        "item_no": "SC-XTL-16M-3225",
+        "po_quantity": 1500,
+        "received_quantity": 1500,
+        "invoiced_quantity": 1500,
+        "po_unit_price": "0.27",
+        "msa_unit_price": "0.27",
+        "invoiced_unit_price": "0.27",
+        "match": true
+      },
+      {
+        "item_no": "SC-ECAP-470U25",
+        "po_quantity": 2500,
+        "received_quantity": 2500,
+        "invoiced_quantity": 2500,
+        "po_unit_price": "0.14",
+        "msa_unit_price": "0.14",
+        "invoiced_unit_price": "0.14",
+        "match": true
+      }
+    ],
+    "surcharges_total": "0.00"
+  },
+  "msa_clauses": {
+    "price_lock": {
+      "clause": "§ 8 (3)",
+      "clause_title": "§ 8 Prices and Price List",
+      "page": 5,
+      "msa_page_count": 16,
+      "summary": "Prices fixed for 12 months until 2027-02-28"
+    },
+    "surcharge": {
+      "clause": "§ 28 (2)",
+      "clause_title": "§ 28 Cost Developments, Surcharges and Additional Charges",
+      "page": 11,
+      "msa_page_count": 16,
+      "summary": "No surcharges of any kind (incl. fuel/energy) unless pre-approved in writing by Buyer's Purchasing (Strategic Procurement) department"
+    },
+    "payment_terms": {
+      "clause": "§ 20 (1)",
+      "clause_title": "§ 20 Payment Terms and Early-Payment Discount",
+      "page": 9,
+      "msa_page_count": 16,
+      "summary": "45 days net; 3 % discount within 10 days"
+    },
+    "late_delivery_penalty": {
+      "clause": "§ 15 (3)",
+      "clause_title": "§ 15 Delivery Dates, Delays and Late-Delivery Penalty",
+      "page": 7,
+      "msa_page_count": 16,
+      "summary": "0.3 % per commenced Business Day, max 6 % of delayed net order value"
+    }
+  }
+}

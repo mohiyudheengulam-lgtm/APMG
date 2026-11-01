@@ -1,0 +1,334 @@
+{
+  "package_name": "seed_01_packaging_fasteners",
+  "description": "Clean package: packaging materials and fasteners, all documents consistent.",
+  "currency": "EUR",
+  "vat_rate": "19",
+  "buyer": {
+    "name": "Lorvaten Fördertechnik GmbH",
+    "short_name": "Lorvaten",
+    "address": {
+      "street": "Brunnthaler Ring 18",
+      "postal_code": "81829",
+      "city": "München",
+      "country": "Germany"
+    },
+    "vat_id": "DE318274905",
+    "registration": {
+      "court": "Amtsgericht München",
+      "number": "HRB 241873"
+    },
+    "managing_directors": [
+      "Dr. Katrin Wendeborn",
+      "Thomas Ahlgrimm"
+    ],
+    "phone": "+49 89 99998-200",
+    "email": "einkauf@lorvaten-foerdertechnik.de",
+    "website": "www.lorvaten-foerdertechnik.de",
+    "contact": {
+      "name": "Sabine Hofreiter",
+      "role": "Senior Buyer, Purchasing Department",
+      "phone": "+49 89 99998-214",
+      "email": "s.hofreiter@lorvaten-foerdertechnik.de"
+    },
+    "accounts_payable": {
+      "name": "Petra Leitner",
+      "email": "kreditoren@lorvaten-foerdertechnik.de"
+    },
+    "bank": {
+      "bank_name": "Isartal Handelsbank AG",
+      "iban": "DE34700518990441726031",
+      "bic": "ISHBDEM1XXX"
+    },
+    "warehouse": {
+      "name": "Central Warehouse, Gate 3",
+      "street": "Brunnthaler Ring 22",
+      "postal_code": "81829",
+      "city": "München",
+      "receiving_hours": "07:00 and 15:00"
+    },
+    "supplier_number_for_supplier": "K-70418"
+  },
+  "supplier": {
+    "name": "Pakvero Industriebedarf GmbH",
+    "short_name": "Pakvero",
+    "address": {
+      "street": "Am Hafenbogen 41",
+      "postal_code": "21129",
+      "city": "Hamburg",
+      "country": "Germany"
+    },
+    "vat_id": "DE294117638",
+    "tax_number": "47/712/03518",
+    "registration": {
+      "court": "Amtsgericht Hamburg",
+      "number": "HRB 158337"
+    },
+    "managing_directors": [
+      "Henrik Matthiesen",
+      "Lena Carstensen"
+    ],
+    "phone": "+49 40 66969-310",
+    "email": "vertrieb@pakvero-industriebedarf.de",
+    "website": "www.pakvero-industriebedarf.de",
+    "contact": {
+      "name": "Ole Petersen",
+      "role": "Key Account Manager",
+      "phone": "+49 40 66969-342",
+      "email": "o.petersen@pakvero-industriebedarf.de"
+    },
+    "dispatch_contact": "Kai Wolters",
+    "bank": {
+      "bank_name": "Hanseatische Gewerbebank AG",
+      "iban": "DE86200694310738815200",
+      "bic": "HGWBDEHHXXX"
+    },
+    "customer_number_for_buyer": "40-11873"
+  },
+  "documents": {
+    "msa": {
+      "number": "MSA-LFT-PKV-2026-01",
+      "signing_date": "2026-01-12",
+      "effective_date": "2026-01-15"
+    },
+    "purchase_order": {
+      "number": "PO-2026-004817",
+      "date": "2026-09-08",
+      "requested_delivery_date": "2026-09-18"
+    },
+    "delivery_note": {
+      "number": "LS-26-09-3321",
+      "date": "2026-09-17",
+      "packages": "3 pallets",
+      "gross_weight_kg": "684"
+    },
+    "goods_receipt": {
+      "number": "WE-2026-01562",
+      "date": "2026-09-17",
+      "receiving_clerk": "Jonas Brüggemann",
+      "storage_location": "ZL-A"
+    },
+    "invoice": {
+      "number": "RE-2026-10457",
+      "date": "2026-09-18",
+      "due_date": "2026-10-18",
+      "discount_deadline": "2026-10-02"
+    }
+  },
+  "msa_terms": {
+    "payment_terms": {
+      "net_days": 30,
+      "early_payment_discount_percent": "2",
+      "discount_days": 14,
+      "discount_base": "gross invoice amount"
+    },
+    "price_lock": {
+      "months": 12,
+      "start_date": "2026-01-15",
+      "end_date": "2027-01-14"
+    },
+    "surcharge_rule": "Surcharges of any kind (incl. fuel/energy surcharges) are not permitted unless approved in advance and in writing by the Buyer's Purchasing Department for the specific order.",
+    "late_delivery_penalty": {
+      "rate_percent": "0.5",
+      "per": "each commenced calendar day",
+      "cap_percent": "5",
+      "basis": "net order value of the delayed goods",
+      "rate_text": "0.5 %",
+      "cap_text": "5 %"
+    },
+    "incoterm": "DAP",
+    "lead_time_business_days": 7,
+    "warranty_months": 24,
+    "governing_law": "Germany (CISG excluded)",
+    "jurisdiction": "Munich",
+    "initial_term": "three (3) years",
+    "termination_notice": "six (6) months’"
+  },
+  "price_list": [
+    {
+      "item_no": "PV-KS-4030",
+      "description": "Corrugated shipping carton, double wall BC flute, 400 x 300 x 300 mm",
+      "unit": "pcs",
+      "unit_price": "1.38"
+    },
+    {
+      "item_no": "PV-KS-6040",
+      "description": "Corrugated shipping carton, double wall BC flute, 600 x 400 x 400 mm",
+      "unit": "pcs",
+      "unit_price": "2.46"
+    },
+    {
+      "item_no": "PV-SF-500",
+      "description": "Machine stretch film 500 mm x 1,500 m, 23 µm, transparent",
+      "unit": "roll",
+      "unit_price": "14.90"
+    },
+    {
+      "item_no": "PV-KB-50",
+      "description": "PP packaging tape 50 mm x 66 m, brown, low-noise",
+      "unit": "roll",
+      "unit_price": "1.65"
+    },
+    {
+      "item_no": "PV-KS-35",
+      "description": "PE edge protector 35 x 35 x 3 mm, length 1,200 mm",
+      "unit": "pcs",
+      "unit_price": "0.42"
+    },
+    {
+      "item_no": "PV-LB-1015",
+      "description": "Thermal transfer labels 100 x 150 mm, 500 per roll",
+      "unit": "roll",
+      "unit_price": "6.80"
+    },
+    {
+      "item_no": "BF-SK-M8x30",
+      "description": "Hex head screw DIN 933 M8 x 30, 8.8, zinc plated (box of 200)",
+      "unit": "box",
+      "unit_price": "18.40"
+    },
+    {
+      "item_no": "BF-SK-M10x40",
+      "description": "Hex head screw DIN 933 M10 x 40, 8.8, zinc plated (box of 100)",
+      "unit": "box",
+      "unit_price": "23.90"
+    },
+    {
+      "item_no": "BF-MU-M8",
+      "description": "Hex nut DIN 934 M8, class 8, zinc plated (box of 500)",
+      "unit": "box",
+      "unit_price": "12.75"
+    },
+    {
+      "item_no": "BF-US-8.4",
+      "description": "Flat washer DIN 125-A 8.4, steel, zinc plated (box of 1,000)",
+      "unit": "box",
+      "unit_price": "9.80"
+    }
+  ],
+  "guideline": {
+    "number": "EK-RL-04",
+    "version": "3.2",
+    "valid_from": "2026-01-01",
+    "owner": "Head of Purchasing",
+    "approved_by": "Dr. Katrin Wendeborn, Managing Director",
+    "payment_runs": "every Tuesday and Friday",
+    "thresholds": [
+      {
+        "range": "up to 5,000.00",
+        "approver": "Purchaser / budget owner of the cost centre",
+        "form": "ERP workflow, single approval"
+      },
+      {
+        "range": "5,000.01 – 25,000.00",
+        "approver": "Head of Purchasing",
+        "form": "ERP workflow, second approval"
+      },
+      {
+        "range": "25,000.01 – 100,000.00",
+        "approver": "Head of Purchasing and Commercial Director",
+        "form": "ERP workflow, dual approval"
+      },
+      {
+        "range": "above 100,000.00",
+        "approver": "Managing Director",
+        "form": "ERP workflow + signed approval memo"
+      }
+    ],
+    "roles": [
+      [
+        "Purchasing Department",
+        "Issues purchase orders, maintains MSA price lists in the ERP system, approves surcharges in writing where justified, resolves price discrepancies with suppliers."
+      ],
+      [
+        "Central Warehouse",
+        "Checks deliveries against the delivery note, posts the goods receipt with the quantities actually received on the day of delivery, records damage and shortfalls."
+      ],
+      [
+        "Accounts Payable",
+        "Records incoming invoices, performs the three-way match and the arithmetic check, blocks invoices with discrepancies and routes them to the responsible approver."
+      ],
+      [
+        "Budget owner / approver",
+        "Approves invoices within the thresholds in section 2 after a successful three-way match."
+      ],
+      [
+        "Head of Purchasing",
+        "Decides on escalated discrepancies and on exceptions to this guideline; exceptions must be documented in writing."
+      ]
+    ]
+  },
+  "line_items": [
+    {
+      "position": 1,
+      "item_no": "PV-KS-4030",
+      "description": "Corrugated shipping carton, double wall BC flute, 400 x 300 x 300 mm",
+      "unit": "pcs",
+      "quantity": 1200,
+      "unit_price": "1.38",
+      "line_total": "1656.00"
+    },
+    {
+      "position": 2,
+      "item_no": "PV-SF-500",
+      "description": "Machine stretch film 500 mm x 1,500 m, 23 µm, transparent",
+      "unit": "roll",
+      "quantity": 48,
+      "unit_price": "14.90",
+      "line_total": "715.20"
+    },
+    {
+      "position": 3,
+      "item_no": "PV-KB-50",
+      "description": "PP packaging tape 50 mm x 66 m, brown, low-noise",
+      "unit": "roll",
+      "quantity": 240,
+      "unit_price": "1.65",
+      "line_total": "396.00"
+    },
+    {
+      "position": 4,
+      "item_no": "PV-KS-35",
+      "description": "PE edge protector 35 x 35 x 3 mm, length 1,200 mm",
+      "unit": "pcs",
+      "quantity": 600,
+      "unit_price": "0.42",
+      "line_total": "252.00"
+    },
+    {
+      "position": 5,
+      "item_no": "BF-SK-M8x30",
+      "description": "Hex head screw DIN 933 M8 x 30, 8.8, zinc plated (box of 200)",
+      "unit": "box",
+      "quantity": 25,
+      "unit_price": "18.40",
+      "line_total": "460.00"
+    },
+    {
+      "position": 6,
+      "item_no": "BF-MU-M8",
+      "description": "Hex nut DIN 934 M8, class 8, zinc plated (box of 500)",
+      "unit": "box",
+      "quantity": 10,
+      "unit_price": "12.75",
+      "line_total": "127.50"
+    },
+    {
+      "position": 7,
+      "item_no": "BF-US-8.4",
+      "description": "Flat washer DIN 125-A 8.4, steel, zinc plated (box of 1,000)",
+      "unit": "box",
+      "quantity": 8,
+      "unit_price": "9.80",
+      "line_total": "78.40"
+    }
+  ],
+  "totals": {
+    "net_total": "3685.10",
+    "vat_rate_percent": "19.00",
+    "vat_amount": "700.17",
+    "gross_total": "4385.27",
+    "early_payment_discount_percent": "2.00",
+    "early_payment_discount_amount": "87.71",
+    "amount_payable_within_discount_period": "4297.56"
+  }
+}
