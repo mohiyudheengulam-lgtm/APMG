@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BarChart3, CheckSquare, ChevronsLeft, ChevronsRight, FileSignature, FlaskConical, PlayCircle, ScanSearch } from "lucide-react";
 import { Source, useApi } from "@/lib/api";
 import { useSource } from "./source";
@@ -21,6 +21,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(true);
   const { source, setSource } = useSource();
   const { data: sources, error } = useApi<Source[]>("/api/sources", 15000);
+  // a remembered data source can disappear (archived results): fall back to this workstation
+  useEffect(() => {
+    if (sources && !sources.some((s) => s.id === source)) setSource("app");
+  }, [sources, source, setSource]);
   const current = NAV.find((n) => (n.href === "/" ? path === "/" : path.startsWith(n.href)));
 
   return (
