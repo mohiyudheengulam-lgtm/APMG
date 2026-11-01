@@ -194,6 +194,8 @@ class AgentRun:
     seconds: float = 0.0
     mode: str = "research"   # "assisted": documents pre-submitted from extraction (never used in the benchmark)
     compactions: int = 0     # retrieval results replaced by a one-line note to keep the context small
+    extraction_check: dict | None = None  # self-check of the extraction (verified / uncertain + failed checks)
+    notes: list[str] = field(default_factory=list)
 
     @property
     def prompt_tokens(self) -> int:

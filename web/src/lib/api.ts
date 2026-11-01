@@ -94,6 +94,9 @@ export type Audit = {
   recommendation: string | null;
   findings: Finding[] | null;
   review_state: string;
+  mode?: string;
+  notes?: string[];
+  extraction_check?: { status: string; checks: { document: string; name: string; ok: boolean; detail: string }[] } | null;
   manager_decision: { decision: string; reviewer: string; timestamp: string; override_reason: string | null } | null;
 };
 
@@ -118,6 +121,7 @@ export type Package = {
   kind: "benchmark" | "upload";
   files: string[];
   contracts: LinkedContract[];
+  extraction: { status: "verified" | "uncertain"; problems: string[] };
   case_type: string | null;
   vendor: string | null;
   expected: string | null;

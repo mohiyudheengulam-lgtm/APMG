@@ -50,8 +50,25 @@ export default function VerificationDetail() {
           </div>
         }
       />
+      {(a.notes?.length || a.extraction_check?.status === "uncertain") && (
+        <div className="mb-4 rounded border border-[#f2d38a] bg-[#fff8e1] px-4 py-2 text-sm text-[#8a6d00]">
+          {a.notes?.map((n) => <div key={n}>⚠ {n}</div>)}
+          {a.extraction_check?.checks
+            .filter((c) => !c.ok)
+            .map((c) => (
+              <div key={c.document + c.name} className="text-xs">
+                {c.document}: {c.name} {c.detail && `(${c.detail})`}
+              </div>
+            ))}
+        </div>
+      )}
       <div className="mb-4 grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <Kpi accent label="Run status" value={<span className="text-xl">{a.run_status}</span>} sub={`${a.steps.length} of 10 steps`} />
+        <Kpi
+          accent
+          label="Run status"
+          value={<span className="text-xl">{a.run_status}</span>}
+          sub={`${a.steps.length} of 10 steps · ${a.mode ?? "research"} mode · extraction ${a.extraction_check?.status ?? "–"}`}
+        />
         <Kpi label="Time" value={secs(a.seconds_total)} sub="wall-clock" />
         <Kpi label="Input tokens" value={num(a.prompt_tokens_total)} sub={`${num(a.output_tokens_total)} output`} />
         <Kpi label="Invalid tool calls" value={num(a.invalid_tool_calls)} sub="rejected by validation/guards" />

@@ -25,6 +25,7 @@ from pydantic import BaseModel
 import tempfile
 
 from agent_on_duty import contracts, pipeline
+from agent_on_duty.extraction.check import check_package
 from agent_on_duty.extraction.extract import extract_package
 from agent_on_duty.audit.store import RecommendationWriter, approve, list_verifications
 from agent_on_duty.schemas import Decision
@@ -171,21 +172,25 @@ def decide(vid: str, body: DecisionIn, source: str = "app"):
 
 # ------------------------------------------------------------------ packages
 
-_LINK_CACHE: dict[str, tuple[tuple, list[dict]]] = {}
+_LINK_CACHE: dict[str, tuple[tuple, dict]] = {}
 
 
-def _linked(pdir: Path) -> list[dict]:
-    """Linked library contracts; cached until the package files or the library change."""
+def _info(pdir: Path) -> dict:
+    """Linked library contracts and the extraction self-check; cached until the package files or the library change."""
     lib_state = tuple(sorted((f.parent.name, f.stat().st_mtime) for f in contracts.LIBRARY.glob("*/contract.json")))
     key = (tuple(sorted((f.name, f.stat().st_mtime) for f in pdir.glob("*.pdf"))), lib_state)
     hit = _LINK_CACHE.get(str(pdir))
     if hit and hit[0] == key:
         return hit[1]
     try:
-        out = [{"id": c.id, "kind": c.kind, "filename": c.filename, "number": c.number}
-               for c in pipeline.linked_contracts(extract_package(pdir))]
-    except Exception:  # unreadable upload: show no links rather than failing the list
-        out = []
+        pkg = extract_package(pdir)
+        check = check_package(pkg, pdir)
+        out = {"contracts": [{"id": c.id, "kind": c.kind, "filename": c.filename, "number": c.number}
+                             for c in pipeline.linked_contracts(pkg)],
+               "extraction": {"status": check.status,
+                              "problems": [f"{c.document}: {c.name} ({c.detail})" for c in check.problems]}}
+    except Exception as e:  # unreadable upload: show it rather than failing the list
+        out = {"contracts": [], "extraction": {"status": "uncertain", "problems": [f"could not read package: {e}"]}}
     _LINK_CACHE[str(pdir)] = (key, out)
     return out
 
@@ -202,7 +207,7 @@ def packages():
             gt = json.loads((p / "ground_truth.json").read_text()) if (p / "ground_truth.json").exists() else {}
             out.append({"id": p.name, "kind": kind, "files": sorted(f.name for f in p.glob("*.pdf")),
                         "case_type": gt.get("case_type"), "vendor": gt.get("vendor"),
-                        "expected": gt.get("expected_recommendation"), "contracts": _linked(p),
+                        "expected": gt.get("expected_recommendation"), **_info(p),
                         "indexed": {path: (INDEX / path / p.name / "build.json").exists() for path in ("A", "B")}})
     return out
 

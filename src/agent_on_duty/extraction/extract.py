@@ -71,7 +71,17 @@ def norm(text: str) -> str:
 
 
 def _words(page: pymupdf.Page) -> list[tuple]:
-    return [(w[0], w[1], w[2], w[3], norm(w[4])) for w in page.get_text("words")]
+    """Words as (x0, y0, x1, y1, text); a currency sign right after a number joins it ("30,00 €" is one cell)."""
+    out: list[tuple] = []
+    for w in page.get_text("words"):
+        t = norm(w[4])
+        prev = out[-1] if out else None
+        if t in {"€", "EUR", "$", "£", "CHF"} and prev and abs(prev[1] - w[1]) < 2 and 0 <= w[0] - prev[2] < 6 \
+                and re.search(r"\d$", prev[4]):
+            out[-1] = (prev[0], prev[1], w[2], prev[3], f"{prev[4]} {t}")
+            continue
+        out.append((w[0], w[1], w[2], w[3], t))
+    return out
 
 
 def _ocr_page(page: pymupdf.Page) -> str:
@@ -122,48 +132,85 @@ def classify(page: pymupdf.Page, text: str) -> tuple[DocType, str]:
 
 # ------------------------------------------------------------------ numbers
 
-NUM_RE = re.compile(r"^-?(\d{1,3}(\.\d{3})+|\d+)(,\d+)?$")
+CURRENCY_RE = re.compile(r"^(?:EUR|€|\$|USD|CHF|£)\s*|\s*(?:EUR|€|\$|USD|CHF|£)$")
+DE_NUM_RE = re.compile(r"^-?(\d{1,3}(\.\d{3})+|\d+)(,\d+)?-?$")
+EN_NUM_RE = re.compile(r"^-?(\d{1,3}(,\d{3})+|\d+)(\.\d+)?-?$")
 
 
-def parse_number(token: str) -> Decimal | None:
-    """German format: 1.234,56 / 1.200 / 0,42 / -3."""
-    token = token.strip().replace("−", "-")
-    if not NUM_RE.match(token):
-        return None
+def detect_locale(tokens: list[str]) -> str:
+    """'de' (1.234,56) or 'en' (1,234.56). Two-decimal amounts weigh most; thousands groups and date formats count too,
+    so stray "2.54 mm" / "reel of 4,000" in descriptions cannot outvote a German delivery note's quantities."""
+    de = en = 0
+    for t in tokens:
+        t = CURRENCY_RE.sub("", t)
+        if re.fullmatch(r"-?\d{1,3}(\.\d{3})*,\d{2}", t):
+            de += 3
+        elif re.fullmatch(r"-?\d{1,3}(,\d{3})*\.\d{2}", t):
+            en += 3
+        elif re.fullmatch(r"\d{1,3}(\.\d{3})+", t):
+            de += 1
+        elif re.fullmatch(r"\d{1,3}(,\d{3})+", t):
+            en += 1
+        elif re.fullmatch(r"\d{1,2}\.\d{1,2}\.\d{4}", t):  # 21.10.2026
+            de += 2
+        elif re.fullmatch(r"\d{1,2}/\d{1,2}/\d{4}", t):  # 10/21/2026
+            en += 2
+    return "en" if en > de else "de"
+
+
+def parse_number(token: str, locale: str = "de") -> Decimal | None:
+    """Amounts and quantities: 1.234,56 / 1.200 / 0,42 / -3 (de) or 1,234.56 (en); a currency sign may be attached."""
+    token = CURRENCY_RE.sub("", token.strip().replace("−", "-").replace(" ", ""))
+    neg = token.endswith("-")
+    token = token.rstrip("-")
+    if locale == "en":
+        if not EN_NUM_RE.match(token):
+            return None
+        raw = token.replace(",", "")
+    else:
+        if not DE_NUM_RE.match(token):
+            return None
+        raw = token.replace(".", "").replace(",", ".")
     try:
-        return Decimal(token.replace(".", "").replace(",", "."))
+        value = Decimal(raw)
     except InvalidOperation:
         return None
+    return -value if neg else value
 
 
 # ------------------------------------------------------------------ table geometry
 
 CODE_RE = re.compile(r"^[A-Z]{2,4}-[A-Za-z0-9][A-Za-z0-9.\-]*$")
+LOOSE_CODE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.\-/]{2,}$")
 DOCNUM_RE = re.compile(r"-20\d\d-|^MSA-|^PO-|^RE-|^LS-|^WE-|^DN-")
+TOTALS_RE = re.compile(r"\b(net|netto|subtotal|sub-total|zwischensumme|total|summe|vat|mwst|ust|tax|gross|brutto|"
+                       r"amount due|rechnungsbetrag|gesamtbetrag|nettobetrag|warenwert)\b", re.I)
 
 
 def _is_code(w: str) -> bool:
     return bool(CODE_RE.match(w)) and any(c.isdigit() for c in w) and not DOCNUM_RE.search(w)
 
 
+ROLE_WORDS = [  # checked in order; first match wins
+    ("unit_price", {"price", "preis", "einzelpreis", "stückpreis", "cost", "rate", "ep"}),
+    ("line_total", {"amount", "total", "value", "gesamtpreis", "gesamt", "betrag", "summe", "extended", "gp"}),
+    ("received", {"received", "erhalten", "eingegangen", "wareneingang"}),
+    ("delivered", {"shipped", "delivered", "dn", "geliefert", "liefermenge"}),
+    ("ordered", {"ordered", "bestellt", "bestellmenge"}),
+    (None, {"backorder", "dev", "diff", "deviation", "rückstand", "abweichung"}),
+    ("qty", {"qty", "quantity", "menge", "anzahl", "stk", "stück"}),
+    ("item", {"item", "material", "part", "sku", "artikel", "artikelnr", "art", "code", "matnr"}),
+    ("text", {"description", "bezeichnung", "beschreibung", "text", "product", "produkt"}),
+]
+
+
 def _column_role(label: str) -> str | None:
-    words = set(re.findall(r"[a-z]+", label.lower()))
-    if "price" in words:
-        return "unit_price"
-    if words & {"amount", "total", "value"}:
-        return "line_total"
-    if "received" in words:
-        return "received"
-    if words & {"shipped", "delivered", "dn"}:
-        return "delivered"
-    if "ordered" in words or ("po" in words and words & {"qty", "quantity"}):
+    words = set(re.findall(r"[a-zäöüß]+", label.lower()))
+    if "po" in words and words & {"qty", "quantity", "menge"}:
         return "ordered"
-    if words & {"backorder", "dev", "diff", "deviation"}:
-        return None
-    if words & {"qty", "quantity"}:
-        return "qty"
-    if words & {"description", "material", "item", "part"}:
-        return "text"
+    for role, vocab in ROLE_WORDS:
+        if words & vocab:
+            return role
     return None
 
 
@@ -230,32 +277,73 @@ def _numeric_clusters(rows: list[list[tuple]]) -> list[dict]:
         clusters.append({"rows": members, "x0": min(w[0] for w in members.values()), "x1": max(w[2] for w in members.values())})
 
 
-def parse_table(page: pymupdf.Page) -> tuple[list[dict], list[tuple[str, Decimal]]]:
-    """Line items as {item_no, ordered, delivered, received, qty, unit_price, line_total}, plus surcharge rows."""
-    words = _words(page)
+SURCHARGE_RE = re.compile(r"surcharge|charge|fee|freight|handling|toll|energy|fuel|zuschlag|fracht|gebühr|porto|"
+                          r"versand|energie|maut|pauschale", re.I)
+
+
+def _header_rows(words: list[tuple]) -> list[tuple[int, list[tuple]]]:
+    """Rows that look like a table header: >= 2 column labels, spread out like table cells."""
+    rows = _rows_of(words)
+    return [(y, ws) for y, ws in sorted(rows.items())
+            if sum(_column_role(w[4]) is not None for w in ws) >= 2 and _table_like(ws)]
+
+
+def _item_column(words: list[tuple], carry: list[tuple] | None) -> tuple[list[tuple], list[tuple]]:
+    """(item-number tokens top→bottom, header words) — strict codes first, else the header's item column."""
     codes = [w for w in words if _is_code(w[4])]
-    if not codes:
-        return [], []
     groups: dict[int, list] = {}
     for w in codes:
         groups.setdefault(round(w[0] / 4), []).append(w)
-    item_col = sorted(max(groups.values(), key=len), key=lambda w: w[1])
-    first, last = item_col[0], item_col[-1]
+    if groups and len(best := max(groups.values(), key=len)) >= 2:
+        return sorted(best, key=lambda w: w[1]), []
+    # relaxed: a header with an item-number column (Artikelnr., SKU, Item, Material ...)
+    candidates = [(ws, ws[0][3]) for _, ws in _header_rows(words)]
+    if carry:
+        candidates.append((carry, -1.0))  # previous page's header layout: table continues at the top
+    for header, header_bottom in candidates:
+        cols = _columns(header)
+        item = next((c for c in cols if c["role"] == "item"), None)
+        if item is None:
+            continue
+        below = _rows_of([w for w in words if w[1] > header_bottom + 1])
+        tokens = []
+        for _, ws in sorted(below.items()):
+            if any(TOTALS_RE.fullmatch(w[4].lower().rstrip(":.")) for w in ws[:2]):
+                break
+            cell = [w for w in ws if w[0] >= item["x0"] - 6 and w[0] <= item["x1"] + 6]
+            if cell and LOOSE_CODE_RE.match(cell[0][4]) and any(ch.isdigit() for ch in cell[0][4]):
+                tokens.append(cell[0])
+        if len(tokens) >= 1:
+            return tokens, header
+    return [], []
 
-    # header: lowest row above the items with >= 2 column labels, plus table-like rows just above it
-    above = _rows_of([w for w in words if first[1] - 60 < w[3] <= first[1] + 0.5 and w[1] < first[1] - 1])
-    labelled = [y for y, ws in above.items() if sum(_column_role(w[4]) is not None for w in ws) >= 2 and _table_like(ws)]
-    if not labelled:
-        return [], []
-    low = max(labelled)
-    header = [w for y, ws in above.items() if low - 7 <= y <= low and (y == low or _table_like(ws)) for w in ws]
+
+def parse_table(page: pymupdf.Page, locale: str = "de", carry: list[tuple] | None = None
+                ) -> tuple[list[dict], list[tuple[str, Decimal]], list[tuple]]:
+    """Line items as {item_no, ordered, delivered, received, qty, unit_price, line_total}, surcharge rows,
+    and the header words used (carried to the next page when a table continues without a repeated header)."""
+    words = _words(page)
+    item_col, header = _item_column(words, carry)
+    if not item_col:
+        return [], [], []
+    first, last = item_col[0], item_col[-1]
+    num = lambda t: parse_number(t, locale)  # noqa: E731
+
+    if not header:
+        # header: lowest row above the items with >= 2 column labels, plus table-like rows just above it
+        above = _rows_of([w for w in words if first[1] - 60 < w[3] <= first[1] + 0.5 and w[1] < first[1] - 1])
+        labelled = [y for y, ws in above.items() if sum(_column_role(w[4]) is not None for w in ws) >= 2 and _table_like(ws)]
+        if not labelled:
+            return [], [], []
+        low = max(labelled)
+        header = [w for y, ws in above.items() if low - 7 <= y <= low and (y == low or _table_like(ws)) for w in ws]
     cols = [c for c in _columns(header) if c["role"] is not None]
 
     # numeric cells per item row (to the right of the item number, on the item's first line)
     item_rows = []
     for code in item_col:
         cells = [w for w in words if w[0] > code[2] and code[1] - 2 <= (w[1] + w[3]) / 2 <= code[3] + 2
-                 and parse_number(w[4]) is not None]
+                 and num(w[4]) is not None]
         item_rows.append(cells)
     items = [{"item_no": c[4]} for c in item_col]
     # numeric columns are right-aligned under right-aligned labels: a header word belongs to the
@@ -272,12 +360,12 @@ def parse_table(page: pymupdf.Page) -> tuple[list[dict], list[tuple[str, Decimal
     numeric_cols = []
     for cl in clusters:
         role = _column_role(" ".join(w[4] for w in cl["words"]))
-        col = {"role": role} if role not in (None, "text") else _assign(cl["x0"], cl["x1"], cols)
-        if col is None or col["role"] in ("text", None):
+        col = {"role": role} if role not in (None, "text", "item") else _assign(cl["x0"], cl["x1"], cols)
+        if col is None or col["role"] in ("text", "item", None):
             continue
         numeric_cols.append((cl, col))
         for i, w in cl["rows"].items():
-            items[i].setdefault(col["role"], parse_number(w[4]))
+            items[i].setdefault(col["role"], num(w[4]))
 
     # additional-charge rows below the items: text label + value aligned with the amount column
     surcharges = []
@@ -286,13 +374,14 @@ def parse_table(page: pymupdf.Page) -> tuple[list[dict], list[tuple[str, Decimal
         below = _rows_of([w for w in words if last[3] + 1 < w[1] < last[3] + 120])
         for _, ws in sorted(below.items()):
             texts = [w[4] for w in ws]
-            if any(t.lower().rstrip(":") in {"net", "total", "subtotal", "vat", "amount", "plus"} for t in texts[:3]):
+            if any(TOTALS_RE.fullmatch(t.lower().rstrip(":.")) for t in texts[:2]) or \
+                    any(t.lower().rstrip(":") in {"net", "total", "subtotal", "vat", "amount", "plus"} for t in texts[:3]):
                 break
-            values = [w for w in ws if abs(w[2] - amount["x1"]) < 6 and parse_number(w[4]) is not None]
-            label = " ".join(t for t in texts if parse_number(t) is None and t not in {"LS", "flat"})
-            if values and re.search(r"surcharge|charge|fee|freight|handling|toll|energy|fuel", label, re.I):
-                surcharges.append((label, parse_number(values[-1][4])))
-    return items, surcharges
+            values = [w for w in ws if abs(w[2] - amount["x1"]) < 6 and num(w[4]) is not None]
+            label = " ".join(t for t in texts if num(t) is None and t not in {"LS", "flat", "€", "EUR"})
+            if values and SURCHARGE_RE.search(label):
+                surcharges.append((re.sub(r"^\d+\s+", "", label), num(values[-1][4])))
+    return items, surcharges, header
 
 
 def _label_value(page: pymupdf.Page, labels: list[str]) -> str | None:
@@ -333,19 +422,26 @@ def extract_document(path: Path) -> ExtractedDocument:
     ref = SourceRef(document=path.name, page=1)
     record = None
     if doc_type in QTY_ROLE:
-        items, charges = parse_table(doc[0])
+        locale = detect_locale([w[4] for page in doc for w in _words(page)])
+        items, charges, carry = [], [], None
+        for page in doc:  # tables may continue over several pages
+            page_items, page_charges, header = parse_table(page, locale, carry)
+            items += page_items
+            charges += page_charges
+            carry = header or carry
         p = doc[0]
         po_no = _label_value(p, ["Your order no\\.", "Customer PO", "PO number", "Purchase order no\\.", "PURCHASE ORDER",
-                                 "Your order", "Purchase Order No\\."]) or ""
+                                 "Your order", "Purchase Order No\\.", "Bestellnummer", "Ihre Bestellung"]) or ""
         if doc_type == DocType.PURCHASE_ORDER:
-            record = PurchaseOrder(po_number=_label_value(p, ["PO number", "PO NUMBER", "Purchase Order No\\."]) or path.stem,
+            record = PurchaseOrder(po_number=_label_value(p, ["PO number", "PO NUMBER", "Purchase Order No\\.", "Bestellnummer"]) or path.stem,
                                    vendor="", lines=_lines(items, doc_type, ref, True), source=ref)
         elif doc_type in (DocType.GOODS_RECEIPT, DocType.DELIVERY_NOTE):
-            number = _label_value(p, ["GR document no\\.", "MATERIAL DOC\\.", "Delivery note no\\.", "Delivery note"]) or path.stem
+            number = _label_value(p, ["GR document no\\.", "MATERIAL DOC\\.", "Delivery note no\\.", "Delivery note",
+                                      "Lieferschein-Nr\\."]) or path.stem
             record = GoodsReceipt(receipt_number=number, po_number=po_no, lines=_lines(items, doc_type, ref, False), source=ref)
         else:
-            vat = re.search(r"VAT\s*(\d{1,2})\s*%", pages[0].text)
-            record = Invoice(invoice_number=_label_value(p, ["Invoice no\\.", "Invoice number"]) or path.stem,
+            vat = re.search(r"(?:VAT|MwSt\.?|USt\.?)\s*(\d{1,2})\s*%", "\n".join(pg.text for pg in pages))
+            record = Invoice(invoice_number=_label_value(p, ["Invoice no\\.", "Invoice number", "Rechnungsnummer", "Rechnung Nr\\."]) or path.stem,
                              po_number=po_no, vendor="", lines=_lines(items, doc_type, ref, True),
                              surcharges=[Surcharge(label=lbl, amount=amt, source=ref) for lbl, amt in charges],
                              tax_rate=Decimal(vat.group(1)) if vat else None, source=ref)

@@ -11,6 +11,7 @@ from pathlib import Path
 from agent_on_duty import contracts as library
 from agent_on_duty.agent.react import AgentRun, PathATools, PathBTools, Verifier
 from agent_on_duty.audit.store import RecommendationWriter
+from agent_on_duty.extraction.check import check_package
 from agent_on_duty.extraction.extract import DocType, ExtractedPackage, extract_document, extract_package
 from agent_on_duty.retrieval import path_b
 from agent_on_duty.retrieval.path_a import MultiIndex, PathAIndex
@@ -89,10 +90,21 @@ def retrieval_for(package_dir: Path, path: str, index_root: Path, lib: Path = li
 
 def verify(package_dir: Path, path: str, index_root: Path, writer: RecommendationWriter | None = None,
            extra: dict | None = None, on_step=None, assisted: bool = False,
-           lib: Path = library.LIBRARY) -> tuple[AgentRun, str | None]:
-    """assisted=True pre-submits the documents from extraction (fast mode for real use; never used by the benchmark)."""
+           lib: Path = library.LIBRARY, client=None) -> tuple[AgentRun, str | None]:
+    """assisted=True pre-submits the documents from extraction (fast mode for real use; never used by the benchmark).
+    Assisted mode is only used when the extraction passes its self-check; otherwise the run falls back to research mode."""
     build = prepare(package_dir, path, index_root, lib=lib)
-    run = Verifier(package_dir.name, retrieval_for(package_dir, path, index_root, lib), documents=build.get("documents"),
-                   assisted=extract_package(package_dir) if assisted else None).verify(on_step=on_step)
+    pkg = extract_package(package_dir)
+    check = check_package(pkg, package_dir)
+    use_assisted = assisted and check.status == "verified"
+    verifier = Verifier(package_dir.name, retrieval_for(package_dir, path, index_root, lib), documents=build.get("documents"),
+                        assisted=pkg if use_assisted else None)
+    verifier.run.extraction_check = check.model_dump()
+    if assisted and not use_assisted:
+        verifier.run.notes.append("Assisted mode fell back to research mode: the extraction could not be verified ("
+                                  + "; ".join(f"{c.document}: {c.name}" for c in check.problems) + ").")
+    if check.status != "verified":
+        verifier.run.notes.append("Extraction uncertain — check the values against the documents.")
+    run = verifier.verify(client=client, on_step=on_step)
     vid = writer.save(run, (extra or {}) | {"build": build}) if writer else None
     return run, vid

@@ -72,7 +72,13 @@ export default function VerifyPage() {
                         {p.kind === "upload" ? "uploaded" : `${p.vendor} · ${p.case_type?.replaceAll("_", " ")}`}
                       </span>
                     </span>
-                    <span className="flex gap-1 text-[10px] text-ink-2">
+                    <span className="flex items-center gap-1 text-[10px] text-ink-2">
+                      <span
+                        title={p.extraction?.status === "verified" ? "extraction verified against the documents' own totals" : p.extraction?.problems.join("\n")}
+                        className={p.extraction?.status === "verified" ? "text-[#107c10]" : "font-bold text-[#8a6d00]"}
+                      >
+                        {p.extraction?.status === "verified" ? "✓" : "⚠"}
+                      </span>
                       {(["A", "B"] as const).map((x) => (
                         <span key={x} className={`rounded px-1 ${p.indexed[x] ? "bg-[#edebe9]" : "text-muted"}`} title={p.indexed[x] ? "index built" : "not indexed yet"}>
                           {x}
@@ -120,6 +126,22 @@ export default function VerifyPage() {
                     </span>
                   )}
                 </div>
+                <div
+                  className={`mb-3 rounded border px-3 py-2 text-xs ${
+                    pkg.extraction?.status === "verified" ? "border-[#c6e7c6] bg-[#f1faf1] text-[#107c10]" : "border-[#f2d38a] bg-[#fff8e1] text-[#8a6d00]"
+                  }`}
+                >
+                  {pkg.extraction?.status === "verified" ? (
+                    <b>✓ Extraction verified — the extracted lines reproduce the documents&apos; own totals.</b>
+                  ) : (
+                    <>
+                      <b>⚠ Extraction uncertain</b> — assisted mode is not available for this package:
+                      <ul className="mt-1 list-disc pl-5">
+                        {pkg.extraction?.problems.map((x) => <li key={x}>{x}</li>)}
+                      </ul>
+                    </>
+                  )}
+                </div>
                 {pkg.expected && (
                   <p className="mb-3 text-xs text-ink-2">
                     Ground truth (benchmark): <FlagChips recommendation={pkg.expected} />
@@ -146,7 +168,8 @@ export default function VerifyPage() {
                       <Zap size={12} /> Assisted mode (fast)
                     </span>{" "}
                     — invoice, PO and goods receipt are pre-filled from extraction; the agent only checks the contract.
-                    For real use only: not part of the research comparison.
+                    Only for packages whose extraction is verified (otherwise it runs in research mode). For real use only:
+                    not part of the research comparison.
                   </span>
                 </label>
                 <button
