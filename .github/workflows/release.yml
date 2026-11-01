@@ -1,0 +1,42 @@
+# Builds the installable app and publishes it as a GitHub Release.
+# Trigger: push a version tag, e.g.  git tag v0.1.1 && git push origin v0.1.1   (or run it manually from the Actions tab)
+name: Release installer
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: astral-sh/setup-uv@v5
+      - name: Install Python dependencies
+        run: uv sync
+      - name: Tests (no AI model needed)
+        run: uv run pytest -q
+      - name: Build web app, demo data and wheel
+        run: scripts/build_app.sh
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.whl \
+            --title "Agent On Duty $GITHUB_REF_NAME" \
+            --notes "Install: \`uv tool install <downloaded .whl>\` then run \`agent-on-duty --demo\`. Needs Ollama with qwen3:1.7b and nomic-embed-text. See SETUP.md."
+      - name: Keep the wheel as a build artifact (manual runs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-on-duty-wheel
+          path: dist/*.whl

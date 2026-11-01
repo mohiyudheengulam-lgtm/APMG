@@ -45,6 +45,9 @@ ollama pull qwen3:1.7b && ollama pull nomic-embed-text
 brew install tesseract       # OCR fallback only
 ```
 
+**Download:** every version tag builds the installer on GitHub — see the repository's *Releases* page
+(`agent_on_duty-<version>-py3-none-any.whl`). Then `uv tool install <file>.whl` and `agent-on-duty --demo`.
+
 Install as a single program (API + web app in one process, any OS with Python 3.12 and Ollama):
 
 ```bash

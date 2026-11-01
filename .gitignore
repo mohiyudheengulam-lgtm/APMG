@@ -77,3 +77,4 @@ data/contracts/
 src/agent_on_duty/webui/
 dist/
 web/out/
+src/agent_on_duty/demo_data.zip
