@@ -198,7 +198,7 @@ export default function VerifyPage() {
                     <span className="flex items-center gap-2">
                       {j.status === "done" ? <FlagChips recommendation={j.recommendation ?? null} /> : <span className="text-xs text-ink-2">{j.stage}</span>}
                       {j.verification_id && (
-                        <Link href={`/verifications/${j.verification_id}`} className="text-xs font-semibold text-[#2a78d6] hover:underline">
+                        <Link href={`/verifications/view?id=${j.verification_id}`} className="text-xs font-semibold text-[#2a78d6] hover:underline">
                           Evidence
                         </Link>
                       )}
@@ -257,7 +257,7 @@ function LiveJob({ job }: { job: Job }) {
       {job.status === "done" && (
         <div className="mt-3 flex items-center justify-between gap-2 rounded bg-[#faf9f8] px-3 py-2">
           <FlagChips recommendation={job.recommendation ?? null} />
-          <Link href={`/verifications/${job.verification_id}`} className="text-sm font-semibold text-[#2a78d6] hover:underline">
+          <Link href={`/verifications/view?id=${job.verification_id}`} className="text-sm font-semibold text-[#2a78d6] hover:underline">
             Open evidence →
           </Link>
         </div>

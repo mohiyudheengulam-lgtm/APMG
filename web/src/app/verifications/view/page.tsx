@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { ArrowLeft, FileText } from "lucide-react";
 import { Audit, useApi } from "@/lib/api";
 import { num, secs, when } from "@/lib/format";
@@ -19,8 +19,17 @@ type Detail = {
 
 const TABS = ["Tool calls", "Calculations", "Cited clauses", "Submitted values", "Run settings"] as const;
 
-export default function VerificationDetail() {
-  const { id } = useParams<{ id: string }>();
+export default function VerificationPage() {
+  // query parameter instead of a dynamic route: works in the static (single-process) build too
+  return (
+    <Suspense fallback={<Spinner label="Loading…" />}>
+      <VerificationDetail />
+    </Suspense>
+  );
+}
+
+function VerificationDetail() {
+  const id = useSearchParams().get("id") ?? "";
   const { source } = useSource();
   const { data, error, reload } = useApi<Detail>(`/api/verifications/${id}?source=${encodeURIComponent(source)}`);
   const [tab, setTab] = useState<(typeof TABS)[number]>("Tool calls");

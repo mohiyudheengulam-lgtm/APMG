@@ -30,12 +30,8 @@ from agent_on_duty.extraction.extract import extract_package
 from agent_on_duty.audit.store import RecommendationWriter, approve, list_verifications
 from agent_on_duty.schemas import Decision
 
-ROOT = Path(__file__).resolve().parents[2]
-DATA = ROOT / "data"
-PACKAGES = DATA / "packages"
-UPLOADS = DATA / "uploads"
-INDEX = DATA / "index"
-RESULTS = ROOT / "results"
+from agent_on_duty.paths import INDEX, PACKAGES, RESULTS, UPLOADS, WEB_BUILD
+
 APP_DIR = RESULTS / "app"
 WRITER = RecommendationWriter(APP_DIR / "aod.sqlite", APP_DIR / "audit")
 SAFE = re.compile(r"^[A-Za-z0-9._-]{1,80}$")
@@ -409,3 +405,11 @@ def contract_file(cid: str):
     if c is None:
         raise HTTPException(404)
     return FileResponse(c.pdf(), media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{c.filename}"'})
+
+
+# ------------------------------------------------------------------ prebuilt web app (single-process mode)
+
+if (WEB_BUILD / "index.html").exists():
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=WEB_BUILD, html=True), name="web")  # after all /api routes

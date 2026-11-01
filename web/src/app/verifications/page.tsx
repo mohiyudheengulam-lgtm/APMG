@@ -50,7 +50,7 @@ export default function VerificationsPage() {
                 {shown.map((r) => (
                   <tr key={r.id} className="border-b border-line last:border-0 hover:bg-[#faf9f8]">
                     <td className="py-2 pr-3 font-semibold">
-                      <Link href={`/verifications/${r.id}`} className="text-[#2a78d6] hover:underline">
+                      <Link href={`/verifications/view?id=${r.id}`} className="text-[#2a78d6] hover:underline">
                         {r.package_id}
                       </Link>
                     </td>

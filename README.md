@@ -45,7 +45,16 @@ ollama pull qwen3:1.7b && ollama pull nomic-embed-text
 brew install tesseract       # OCR fallback only
 ```
 
-Run the app (API on :8000, UI on http://localhost:3100):
+Install as a single program (API + web app in one process, any OS with Python 3.12 and Ollama):
+
+```bash
+scripts/build_app.sh                                   # builds dist/agent_on_duty-0.1.0-py3-none-any.whl
+uv tool install dist/agent_on_duty-0.1.0-py3-none-any.whl
+agent-on-duty                                          # opens http://localhost:8000 ; data in ~/AgentOnDuty
+```
+(`--host 0.0.0.0` makes it reachable from other devices on the network; `AOD_HOME` changes the data folder.)
+
+Development (hot reload — API on :8000, UI on http://localhost:3100):
 
 ```bash
 scripts/dev.sh            # or separately:

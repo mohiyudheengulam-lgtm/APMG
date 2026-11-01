@@ -68,9 +68,12 @@ Thumbs.db
 data/packages/*
 !data/packages/.gitkeep
 data/index/
-audit/
+/audit/
 results/
 data/uploads/
 .streamlit/secrets.toml
 data/seed_previews/
 data/contracts/
+src/agent_on_duty/webui/
+dist/
+web/out/

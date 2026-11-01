@@ -65,7 +65,7 @@ export default function ApprovalsPage() {
               {reviewed.map((r) => (
                 <tr key={r.id} className="border-b border-line last:border-0">
                   <td className="py-1.5 pr-3 font-semibold">
-                    <Link href={`/verifications/${r.id}`} className="hover:underline">
+                    <Link href={`/verifications/view?id=${r.id}`} className="hover:underline">
                       {r.package_id}
                     </Link>
                   </td>
@@ -99,7 +99,7 @@ function PendingCard({ row, source, onDone }: { row: VerificationRow; source: st
       <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <Link href={`/verifications/${row.id}`} className="text-[15px] font-semibold hover:underline">
+            <Link href={`/verifications/view?id=${row.id}`} className="text-[15px] font-semibold hover:underline">
               {row.package_id}
             </Link>
             <PathBadge path={row.path} />
@@ -115,7 +115,7 @@ function PendingCard({ row, source, onDone }: { row: VerificationRow; source: st
         </div>
       </div>
       {data ? (
-        <Findings findings={data.audit.findings} onOpen={() => router.push(`/verifications/${row.id}`)} />
+        <Findings findings={data.audit.findings} onOpen={() => router.push(`/verifications/view?id=${row.id}`)} />
       ) : (
         <Spinner />
       )}

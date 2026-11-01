@@ -19,8 +19,7 @@ from pydantic import BaseModel
 
 from agent_on_duty.extraction.extract import DocType, ExtractedDocument, extract_document, norm
 
-REPO = Path(__file__).resolve().parents[2]
-LIBRARY = REPO / "data" / "contracts"
+from agent_on_duty.paths import CONTRACTS as LIBRARY
 KINDS = {DocType.MSA: "msa", DocType.GUIDELINE: "guideline"}
 
 COMPANY_RE = re.compile(r"([A-ZÄÖÜ][\wÄÖÜäöüß&.\-]+(?:\s+[A-ZÄÖÜ&][\wÄÖÜäöüß&.\-]+){0,3})\s+(GmbH(?:\s*&\s*Co\.\s*KG)?|AG|KG|SE|Ltd\.?|Inc\.?)\b")
