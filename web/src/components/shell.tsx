@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { BarChart3, CheckSquare, ChevronsLeft, ChevronsRight, FlaskConical, PlayCircle, ScanSearch } from "lucide-react";
+import { BarChart3, CheckSquare, ChevronsLeft, ChevronsRight, FileSignature, FlaskConical, PlayCircle, ScanSearch } from "lucide-react";
 import { Source, useApi } from "@/lib/api";
 import { useSource } from "./source";
 
@@ -12,6 +12,7 @@ const NAV = [
   { href: "/verify", label: "Verify", icon: PlayCircle },
   { href: "/verifications", label: "Evidence", icon: ScanSearch },
   { href: "/approvals", label: "Approvals", icon: CheckSquare },
+  { href: "/contracts", label: "Contracts", icon: FileSignature },
   { href: "/benchmark", label: "Benchmark", icon: FlaskConical },
 ];
 

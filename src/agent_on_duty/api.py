@@ -22,7 +22,10 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from agent_on_duty import pipeline
+import tempfile
+
+from agent_on_duty import contracts, pipeline
+from agent_on_duty.extraction.extract import extract_package
 from agent_on_duty.audit.store import RecommendationWriter, approve, list_verifications
 from agent_on_duty.schemas import Decision
 
@@ -168,6 +171,25 @@ def decide(vid: str, body: DecisionIn, source: str = "app"):
 
 # ------------------------------------------------------------------ packages
 
+_LINK_CACHE: dict[str, tuple[tuple, list[dict]]] = {}
+
+
+def _linked(pdir: Path) -> list[dict]:
+    """Linked library contracts; cached until the package files or the library change."""
+    lib_state = tuple(sorted((f.parent.name, f.stat().st_mtime) for f in contracts.LIBRARY.glob("*/contract.json")))
+    key = (tuple(sorted((f.name, f.stat().st_mtime) for f in pdir.glob("*.pdf"))), lib_state)
+    hit = _LINK_CACHE.get(str(pdir))
+    if hit and hit[0] == key:
+        return hit[1]
+    try:
+        out = [{"id": c.id, "kind": c.kind, "filename": c.filename, "number": c.number}
+               for c in pipeline.linked_contracts(extract_package(pdir))]
+    except Exception:  # unreadable upload: show no links rather than failing the list
+        out = []
+    _LINK_CACHE[str(pdir)] = (key, out)
+    return out
+
+
 @app.get("/api/packages")
 def packages():
     out = []
@@ -180,7 +202,7 @@ def packages():
             gt = json.loads((p / "ground_truth.json").read_text()) if (p / "ground_truth.json").exists() else {}
             out.append({"id": p.name, "kind": kind, "files": sorted(f.name for f in p.glob("*.pdf")),
                         "case_type": gt.get("case_type"), "vendor": gt.get("vendor"),
-                        "expected": gt.get("expected_recommendation"),
+                        "expected": gt.get("expected_recommendation"), "contracts": _linked(p),
                         "indexed": {path: (INDEX / path / p.name / "build.json").exists() for path in ("A", "B")}})
     return out
 
@@ -204,7 +226,10 @@ async def upload(name: str = Form(...), files: list[UploadFile] = File(...)):
 
 @app.get("/api/packages/{pkg}/files/{fname}")
 def package_file(pkg: str, fname: str):
+    """A package PDF, or a linked contract from the library (evidence often cites the MSA)."""
     f = _package_dir(pkg) / _safe(fname)
+    if not f.exists():
+        f = contracts.find_file(fname) or f
     if not f.exists() or f.suffix.lower() != ".pdf":
         raise HTTPException(404)
     return FileResponse(f, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{fname}"'})
@@ -315,3 +340,67 @@ def benchmark(tag: str):
     runs = list(csv.DictReader((d / "runs.csv").open())) if (d / "runs.csv").exists() else []
     manifest = json.loads((d / "manifest.json").read_text()) if (d / "manifest.json").exists() else {}
     return {"summary": json.loads((d / "summary.json").read_text()), "runs": runs, "manifest": manifest}
+
+
+# ------------------------------------------------------------------ contract library
+
+class ContractPatch(BaseModel):
+    match_terms: list[str]
+
+
+def _contract_json(c: contracts.Contract, pkgs: list[dict] | None = None) -> dict:
+    d = json.loads(c.model_dump_json())
+    if pkgs is not None:
+        d["packages"] = [p["id"] for p in pkgs if any(x["id"] == c.id for x in p.get("contracts", []))]
+    return d
+
+
+@app.get("/api/contracts")
+def list_contracts():
+    pkgs = packages()
+    return [_contract_json(c, pkgs) for c in contracts.all_contracts()]
+
+
+@app.post("/api/contracts")
+async def add_contract(file: UploadFile = File(...), match_terms: str = Form("")):
+    """Add a partner MSA or the purchasing guideline. Match terms: comma-separated; empty = auto-detect."""
+    name = _safe(Path(file.filename or "contract.pdf").name)
+    if not name.lower().endswith(".pdf"):
+        raise HTTPException(400, "PDF files only")
+    with tempfile.TemporaryDirectory() as tmp:
+        src = Path(tmp) / name
+        src.write_bytes(await file.read())
+        terms = [t.strip() for t in match_terms.split(",") if t.strip()] or None
+        try:
+            c = contracts.add(src, filename=name, match_terms=terms)
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+    for path in ("A", "B"):
+        shutil.rmtree(INDEX / path / "contracts" / c.id, ignore_errors=True)
+    return _contract_json(c, packages())
+
+
+@app.patch("/api/contracts/{cid}")
+def edit_contract(cid: str, body: ContractPatch):
+    c = contracts.get(_safe(cid))
+    if c is None:
+        raise HTTPException(404)
+    c.match_terms = [t.strip() for t in body.match_terms if t.strip()]
+    contracts.save(c)
+    return _contract_json(c, packages())
+
+
+@app.delete("/api/contracts/{cid}")
+def delete_contract(cid: str):
+    if contracts.get(_safe(cid)) is None:
+        raise HTTPException(404)
+    contracts.remove(cid, index_root=INDEX)
+    return {"deleted": cid}
+
+
+@app.get("/api/contracts/{cid}/file")
+def contract_file(cid: str):
+    c = contracts.get(_safe(cid))
+    if c is None:
+        raise HTTPException(404)
+    return FileResponse(c.pdf(), media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{c.filename}"'})

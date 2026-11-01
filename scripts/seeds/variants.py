@@ -2,8 +2,9 @@
 
 Each seed (one buyer–supplier relationship, its MSA and purchasing guideline) is expanded into
 12 packages: new order lines from the MSA price list, new document numbers and dates, and one
-injected case per package. Transactional PDFs are rendered with the seed's own layouts; the MSA
-and guideline are copied unchanged (one contract per vendor).
+injected case per package. Transactional PDFs (PO, delivery note, goods receipt, invoice) are rendered
+with the seed's own layouts. The seed's MSA and purchasing guideline go into the contract library once
+(data/contracts) and are linked to packages by the MSA number / buyer name on the invoice and PO.
 
     uv run python scripts/dataset_generator.py        # writes data/packages/PKG-NNN/
 """
@@ -185,7 +186,8 @@ def ground_truth(pkg_id: str, case: str, m: dict, seed_gt: dict, files: dict, mi
         "vendor": m["supplier"]["short_name"],
         "buyer": m["buyer"]["name"],
         "supplier": m["supplier"]["name"],
-        "documents": {k: v for k, v in files.items() if k not in missing},
+        "documents": {k: v for k, v in files.items() if k in TRANSACTIONAL and k not in missing},
+        "contract_documents": {"msa": files["msa"], "purchasing_guideline": files["purchasing_guideline"]},
         "missing_documents": missing,
         "fields": fields,
         "extra_fields": extra,
@@ -199,7 +201,22 @@ def ground_truth(pkg_id: str, case: str, m: dict, seed_gt: dict, files: dict, mi
     }
 
 
-def generate(out_dir: Path, seed: int = 42) -> list[dict]:
+def register_contracts(seed_mod, library: Path) -> dict[str, str]:
+    """Put the seed's MSA and guideline into the contract library under their document numbers."""
+    from agent_on_duty import contracts
+
+    cfg, seed_dir = seed_mod.CONFIG, SEEDS_OUT / seed_mod.CONFIG["package_name"]
+    names = {"msa": filename(cfg["documents"]["msa"]["number"]),
+             "purchasing_guideline": filename(cfg["guideline"]["number"])}
+    contracts.add(seed_dir / "msa.pdf", filename=names["msa"], library=library)
+    contracts.add(seed_dir / "purchasing_guideline.pdf", filename=names["purchasing_guideline"], library=library)
+    return names
+
+
+def generate(out_dir: Path, seed: int = 42, library: Path | None = None) -> list[dict]:
+    from agent_on_duty.contracts import LIBRARY
+
+    library = library or LIBRARY
     rng = random.Random(seed)
     out_dir.mkdir(parents=True, exist_ok=True)
     for old in out_dir.glob("PKG-*"):
@@ -209,6 +226,7 @@ def generate(out_dir: Path, seed: int = 42) -> list[dict]:
         name = seed_mod.CONFIG["package_name"]
         seed_dir = SEEDS_OUT / name
         seed_gt = json.loads((seed_dir / "ground_truth.json").read_text())
+        register_contracts(seed_mod, library)
         for k, case in enumerate(CASES[name], start=1):
             idx += 1
             pkg_id = f"PKG-{idx:03d}"
@@ -228,8 +246,6 @@ def generate(out_dir: Path, seed: int = 42) -> list[dict]:
                     continue
                 spec, meta = getattr(layout, key)()
                 render_pdf(pdir / files[key], spec, meta)
-            shutil.copy(seed_dir / "msa.pdf", pdir / files["msa"])
-            shutil.copy(seed_dir / "purchasing_guideline.pdf", pdir / files["purchasing_guideline"])
             gt = ground_truth(pkg_id, case, m, seed_gt, files, missing)
             (pdir / "ground_truth.json").write_text(json.dumps(gt, indent=1, ensure_ascii=False))
             gts.append(gt)

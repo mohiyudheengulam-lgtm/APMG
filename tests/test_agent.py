@@ -4,10 +4,9 @@ import json
 
 from ollama import ChatResponse, Message
 
-from agent_on_duty.agent.react import PathBTools, RunStatus, Verifier
+from agent_on_duty import pipeline
+from agent_on_duty.agent.react import RunStatus, Verifier
 from agent_on_duty.extraction.extract import extract_package
-from agent_on_duty.retrieval import path_b
-from agent_on_duty.retrieval.path_b import PathBBundle
 
 
 class ScriptedModel:
@@ -35,18 +34,19 @@ def _submit(gt, doc_type):
     return ("submit_document", args)
 
 
-def _bundle(pdir, tmp_path):
-    path_b.convert(pdir, tmp_path / "B")
-    return PathBTools(PathBBundle(tmp_path / "B"))
+def _bundle(pdir, tmp_path, library):
+    """Path B through the real pipeline: package bundle + MSA/guideline mounted from the contract library."""
+    pipeline.prepare(pdir, "B", tmp_path / "index", lib=library)
+    return pipeline.retrieval_for(pdir, "B", tmp_path / "index", lib=library)
 
 
 def _surcharge_file(tools):
-    return next(f.name for f in (tools.bundle.root / "msa").iterdir() if "surcharge" in f.name)
+    return next(f.name for f in tools.bundle.mounts["msa"].iterdir() if "surcharge" in f.name)
 
 
-def test_research_mode_finds_all_flags_and_compacts(packages, tmp_path):
+def test_research_mode_finds_all_flags_and_compacts(packages, library, tmp_path):
     pdir, gt = _combined(packages)
-    tools = _bundle(pdir, tmp_path)
+    tools = _bundle(pdir, tmp_path, library)
     clause = gt["msa_clauses"]["surcharges"]
     sc = gt["fields"]["invoice"]["surcharges"][0]
     model = ScriptedModel([
@@ -67,16 +67,16 @@ def test_research_mode_finds_all_flags_and_compacts(packages, tmp_path):
     assert first_read["content"].startswith("[Earlier read result")
 
 
-def test_unretrieved_values_are_rejected(packages, tmp_path):
+def test_unretrieved_values_are_rejected(packages, library, tmp_path):
     pdir, gt = _combined(packages)
     model = ScriptedModel([[_submit(gt, "invoice")], [("finish", {})]] + [[("finish", {})]] * 8)
-    run = Verifier(pdir.name, _bundle(pdir, tmp_path)).verify(client=model)
+    run = Verifier(pdir.name, _bundle(pdir, tmp_path, library)).verify(client=model)
     assert run.invalid_tool_calls >= 2 and run.recommendation is None
 
 
-def test_assisted_mode_only_needs_the_msa(packages, tmp_path):
+def test_assisted_mode_only_needs_the_msa(packages, library, tmp_path):
     pdir, gt = _combined(packages)
-    tools = _bundle(pdir, tmp_path)
+    tools = _bundle(pdir, tmp_path, library)
     clause = gt["msa_clauses"]["surcharges"]
     sc = gt["fields"]["invoice"]["surcharges"][0]
     model = ScriptedModel([

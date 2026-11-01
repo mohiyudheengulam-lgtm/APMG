@@ -97,10 +97,27 @@ export type Audit = {
   manager_decision: { decision: string; reviewer: string; timestamp: string; override_reason: string | null } | null;
 };
 
+export type LinkedContract = { id: string; kind: "msa" | "guideline"; filename: string; number: string | null };
+
+export type Contract = {
+  id: string;
+  kind: "msa" | "guideline";
+  filename: string;
+  title: string;
+  number: string | null;
+  parties: string[];
+  match_terms: string[];
+  pages: number;
+  added_at: string;
+  build: Record<string, { build_seconds: number; storage_bytes: number }>;
+  packages: string[];
+};
+
 export type Package = {
   id: string;
   kind: "benchmark" | "upload";
   files: string[];
+  contracts: LinkedContract[];
   case_type: string | null;
   vendor: string | null;
   expected: string | null;

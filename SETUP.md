@@ -28,7 +28,7 @@ On Linux set them in the `ollama.service` environment instead.
 git clone <repo-url> apmg && cd apmg
 uv sync
 uv run python scripts/seeds/build_seeds.py      # seed packages (deterministic)
-uv run python scripts/dataset_generator.py      # 24 benchmark packages
+uv run python scripts/dataset_generator.py      # 24 benchmark packages + contract library (2 MSAs, 2 guidelines)
 uv run pytest                                   # 16 tests, ~1 min
 uv run python scripts/speed_check.py            # how long will the benchmark take here?
 cd web && npm install && cd ..

@@ -106,6 +106,20 @@ export default function VerifyPage() {
                     </a>
                   ))}
                 </div>
+                <div className="mb-3 rounded border border-line bg-[#faf9f8] px-3 py-2 text-xs text-ink-2">
+                  <span className="font-semibold text-ink">From the contract library: </span>
+                  {pkg.contracts.length ? (
+                    pkg.contracts.map((c) => (
+                      <a key={c.id} href={pdfUrl(pkg.id, c.filename)} target="_blank" className="mr-2 inline-flex items-center gap-1 text-[#2a78d6] hover:underline">
+                        <FileText size={11} /> {c.filename} ({c.kind === "msa" ? `MSA ${c.number ?? ""}` : "guideline"})
+                      </a>
+                    ))
+                  ) : (
+                    <span className="text-[#a4262c]">
+                      no contract linked — add the supplier&apos;s MSA under <Link href="/contracts" className="underline">Contracts</Link>
+                    </span>
+                  )}
+                </div>
                 {pkg.expected && (
                   <p className="mb-3 text-xs text-ink-2">
                     Ground truth (benchmark): <FlagChips recommendation={pkg.expected} />
@@ -308,7 +322,9 @@ function UploadCard({ onDone }: { onDone: (id: string) => void }) {
         className="flex cursor-pointer flex-col items-center gap-1 rounded border border-dashed border-[#c8c6c4] px-4 py-5 text-center text-sm text-ink-2 hover:border-[#2a78d6]"
       >
         <Upload size={20} />
-        {files.length ? `${files.length} PDF(s): ${files.map((f) => f.name).join(", ")}` : "Drop the PO, goods receipt, invoice and MSA PDFs here, or click"}
+        {files.length
+          ? `${files.length} PDF(s): ${files.map((f) => f.name).join(", ")}`
+          : "Drop the PO, delivery note, goods receipt and invoice PDFs here, or click. The MSA comes from the contract library."}
         <input ref={input} type="file" accept="application/pdf" multiple hidden onChange={(e) => setFiles([...(e.target.files ?? [])])} />
       </div>
       <div className="mt-3 flex gap-2">

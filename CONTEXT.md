@@ -34,10 +34,13 @@ vs **Path B (OKF v0.2 concept navigation)**.
 - `data/seeds/` — two realistic seed packages (packaging/fasteners; electronic components), built by `scripts/seeds/build_seeds.py`
 - `data/packages/PKG-001..024` — 12 variants per seed (`scripts/seeds/variants.py` via `scripts/dataset_generator.py`):
   compliant ×6, quantity (GR short) ×2, partial delivery ×2, price ×4, line total ×2, surcharge ×4, missing GR/PO ×2, combined ×2
-- Files named by document number; each package: PO, delivery note, goods receipt, invoice, MSA, purchasing guideline
+- Files named by document number; each package: PO, delivery note, goods receipt, invoice
+- Contract library `data/contracts/` (Contracts page): partner MSAs + purchasing guideline added once, linked to packages by
+  the MSA number / buyer name on invoice or PO; their Path A index / Path B concepts are built once and reused
 - Extraction is layout-independent (word geometry, German numbers); tests check 100 % field match on all 24
 
 ## Status
+- 2026-11-01: contract library (add/edit/remove MSAs in the app; packages = PO, DN, GR, invoice only); repo on GitHub main
 - 2026-10-31: benchmark rebuilt on the realistic seeds; extraction + OKF converter generalised (MSA § / numbered sections, TOC skip, page markers)
 - 2026-10-31: exposé revision (sections 1–10) applied: LINE_TOTAL flag, tax-rate field, independent per-path extraction
 - 2026-10-31: benchmark generator (24 pkgs, PDFs + ground truth) + PyMuPDF extraction, 100% field match

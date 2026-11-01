@@ -344,7 +344,8 @@ class Verifier:
         lines = [f"Verify package {self.run.package_id}."]
         if self.documents:
             lines.append("Documents in this package:")
-            lines += [f"- {d['file']} ({d['type'].replace('_', ' ')})" for d in self.documents]
+            lines += [f"- {d['file']} ({d['type'].replace('_', ' ')}{', from the contract library' if d.get('library') else ''})"
+                      for d in self.documents]
         if self.run.mode == "assisted":
             lines += ["", "The invoice, purchase order and goods receipt were already extracted, submitted and checked:",
                       self.precheck,

@@ -3,7 +3,8 @@
 import json
 from decimal import Decimal
 
-from agent_on_duty.extraction.extract import DocType, extract_package, parse_number
+from agent_on_duty.contracts import find_file
+from agent_on_duty.extraction.extract import DocType, extract_document, extract_package, parse_number
 from agent_on_duty.retrieval.path_b import _msa_sections
 
 
@@ -20,8 +21,7 @@ def test_document_types(packages):
         gt = json.loads((pdir / "ground_truth.json").read_text())
         ex = extract_package(pdir)
         got = {d.filename: d.doc_type.value for d in ex.documents}
-        want = {f: ("guideline" if k == "purchasing_guideline" else k) for k, f in gt["documents"].items()}
-        assert got == want, pdir.name
+        assert got == {f: k for k, f in gt["documents"].items()}, pdir.name  # contracts live in the library
 
 
 def test_fields_match_ground_truth(packages):
@@ -43,10 +43,11 @@ def test_fields_match_ground_truth(packages):
             [(ln["item_no"], ln["quantity"]) for ln in gt["extra_fields"]["delivery_note"]["lines"]], pdir.name
 
 
-def test_msa_sections_cite_clause_pages(packages):
+def test_msa_sections_cite_clause_pages(packages, library):
     for pdir in (packages[0], packages[-1]):  # one package per seed
         gt = json.loads((pdir / "ground_truth.json").read_text())
-        msa = extract_package(pdir).get(DocType.MSA)
+        msa = extract_document(find_file(gt["contract_documents"]["msa"], library))
+        assert msa.doc_type == DocType.MSA
         sections = _msa_sections(msa)
         assert len(sections) > 30
         for key in ("surcharge", "price_lock", "payment_terms", "late_delivery_penalty"):

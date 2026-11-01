@@ -73,3 +73,4 @@ results/
 data/uploads/
 .streamlit/secrets.toml
 data/seed_previews/
+data/contracts/

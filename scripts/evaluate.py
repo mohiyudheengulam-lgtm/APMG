@@ -172,6 +172,7 @@ def evaluate(tag: str, data: Path, index: Path) -> dict:
         n = len(rs)
         run_pkgs = {r["package_id"] for r in rs}
         builds = [json.loads(b.read_text()) for b in (index / path).glob("*/build.json") if b.parent.name in run_pkgs]
+        contract_builds = [json.loads(b.read_text()) for b in (index / path / "contracts").glob("*/build.json")]
         micro = [sum(v[i] for v in flag_counts.values()) for i in range(3)]
         summary[path] = {
             "runs": n,
@@ -192,6 +193,9 @@ def evaluate(tag: str, data: Path, index: Path) -> dict:
             "prep_build_s_total": sum(b["build_seconds"] for b in builds),
             "prep_extract_s_total": sum(b["extract_seconds"] for b in builds),
             "prep_storage_bytes": sum(b["storage_bytes"] for b in builds),
+            # one-off per contract in the library, shared by all its packages
+            "prep_contract_build_s": sum(b["build_seconds"] for b in contract_builds),
+            "prep_contract_storage_bytes": sum(b["storage_bytes"] for b in contract_builds),
             "by_case": {k: pct(*v) for k, v in sorted(by_case.items())},
             "causes": dict(causes),
         }
@@ -247,6 +251,8 @@ def render(tag: str, s: dict) -> str:
              "| **4. Preparation** |" + " |" * len(paths),
              row("Build seconds (all packages, incl. extraction)", lambda x: f"{x['prep_build_s_total']:.1f}"),
              row("Storage KB", lambda x: f"{x['prep_storage_bytes'] / 1024:.0f}"),
+             row("Contract library: one-off build seconds", lambda x: f"{x.get('prep_contract_build_s', 0):.1f}"),
+             row("Contract library: storage KB", lambda x: f"{x.get('prep_contract_storage_bytes', 0) / 1024:.0f}"),
              "| **5. Reliability** |" + " |" * len(paths),
              row("Valid recommendation %", lambda x: f1(x["valid_share"])),
              row("Invalid tool-call rate %", lambda x: f1(x["invalid_tool_call_rate"])),
