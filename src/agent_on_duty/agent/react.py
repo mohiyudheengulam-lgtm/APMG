@@ -307,6 +307,10 @@ class Verifier:
         return "Recorded."
 
     def finish(self) -> str:
+        unresolved = [doc_type for doc_type in ("invoice", "purchase_order", "goods_receipt")
+                      if doc_type not in self.docs and doc_type not in self.missing]
+        if unresolved:
+            raise ValueError(f"Required documents unresolved: {', '.join(unresolved)}; submit them or report them missing")
         if not self.checks_ran and "invoice" not in self.missing:
             raise ValueError("run_checks has not completed; submit the documents and call run_checks first")
         findings = list(self.findings) + self.surcharge_findings
