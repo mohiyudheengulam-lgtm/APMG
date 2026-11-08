@@ -40,7 +40,7 @@ def _record_concept(doc: ExtractedDocument, links: list[tuple[str, str]]) -> str
     priced = doc.doc_type in (DocType.INVOICE, DocType.PURCHASE_ORDER)
     meta = {"type": doc.doc_type.value, "title": f"{TITLES[doc.doc_type]} {doc.filename.removesuffix('.pdf')}",
             "source_document": doc.filename, "page": 1, "pages": [1]}
-    body = [f"# {meta['title']}", ""]
+    body = [f"# {meta['title']}", "", f"**Source file (use as `document` field):** {doc.filename}", ""]
     header = {k: v for k, v in rec.model_dump(exclude={"lines", "surcharges", "source"}).items() if v is not None}
     body += [f"- **{k.replace('_', ' ').title()}:** {v}" for k, v in header.items()] + [""]
     if priced:
@@ -211,6 +211,48 @@ class PathBBundle:
         """`mounts`: library contract folders shown inside the bundle, e.g. {"msa": .../msa, "guideline.md": ...}."""
         self.root = root.resolve()
         self.mounts = {k: v.resolve() for k, v in (mounts or {}).items()}
+        self._pdf_map: dict[str, str] | None = None
+
+    def _source_to_concept(self) -> dict[str, str]:
+        """Reverse index: source PDF filename -> concept file path (lazy, built once).
+        Scans the bundle root and all mounted directories. For multi-section sources
+        (e.g. MSA), prefers the index.md entry over individual section files."""
+        if self._pdf_map is not None:
+            return self._pdf_map
+        mapping: dict[str, str] = {}
+
+        def _scan(directory: Path, prefix: str):
+            for md in directory.rglob("*.md"):
+                try:
+                    text = md.read_text(encoding="utf-8")
+                    if not text.startswith("---"):
+                        continue
+                    meta = yaml.safe_load(text.split("---")[1])
+                    src = meta.get("source_document")
+                    if not src:
+                        continue
+                    rel = (prefix + "/" + str(md.relative_to(directory))).lstrip("/")
+                    if src not in mapping or rel.endswith("index.md"):
+                        mapping[src] = rel
+                except Exception:
+                    pass
+
+        _scan(self.root, "")
+        for key, mount_path in self.mounts.items():
+            if mount_path.is_dir():
+                _scan(mount_path, key)
+            elif mount_path.is_file() and mount_path.suffix == ".md":
+                try:
+                    text = mount_path.read_text(encoding="utf-8")
+                    if text.startswith("---"):
+                        meta = yaml.safe_load(text.split("---")[1])
+                        if src := meta.get("source_document"):
+                            mapping[src] = key
+                except Exception:
+                    pass
+
+        self._pdf_map = mapping
+        return mapping
 
     def _resolve(self, path: str) -> tuple[Path, Path]:
         rel = path.strip().lstrip("/")
@@ -222,14 +264,21 @@ class PathBBundle:
         return self.root, (self.root / rel).resolve()
 
     def read(self, path: str) -> str:
-        """Open a concept or index file; paths are relative to the bundle root and sandboxed to it (or a mount)."""
+        """Open a concept or index file; paths are relative to the bundle root and sandboxed to it (or a mount).
+        PDF filenames are automatically mapped to their concept file so the agent can use either name."""
+        # Transparently map PDF filenames to their OKF concept equivalents.
+        if path.lower().endswith(".pdf"):
+            concept = self._source_to_concept().get(path)
+            if concept:
+                path = concept
         base, target = self._resolve(path)
         if base not in target.parents and target != base:
             raise ValueError("path outside bundle")
         if target.is_dir():
             target = target / "index.md"
         if not target.exists() or target.suffix != ".md":
-            raise FileNotFoundError(path)
+            available = "index.md, invoice.md, purchase_order.md, delivery_note.md, goods_receipt.md, guideline.md, msa/index.md"
+            raise FileNotFoundError(f"{path} — use concept filenames or start with index.md. Available: {available}")
         return target.read_text(encoding="utf-8")
 
     def meta(self, path: str) -> dict:

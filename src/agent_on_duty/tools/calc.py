@@ -73,5 +73,11 @@ def line_total_variance(invoice: Invoice) -> list[Finding]:
     return findings
 
 
+def unmatched_lines(po: PurchaseOrder, invoice: Invoice) -> list[LineItem]:
+    """Invoice lines whose item_no is not on the PO — an extra charge or a wrongly read item number."""
+    po_items = _by_item(po.lines)
+    return [inv for inv in invoice.lines if inv.item_no not in po_items]
+
+
 def total_impact(findings: list[Finding]) -> Decimal:
     return sum((f.amount or Decimal(0) for f in findings), Decimal(0))

@@ -5,7 +5,9 @@ from decimal import Decimal as D
 from agent_on_duty.schemas import (
     Finding, Flag, GoodsReceipt, Invoice, LineItem, PurchaseOrder, SourceRef, Surcharge,
 )
-from agent_on_duty.tools.calc import line_total_variance, price_variance, quantity_variance, total_impact
+from agent_on_duty.tools.calc import (
+    line_total_variance, price_variance, quantity_variance, total_impact, unmatched_lines,
+)
 
 PO_REF = SourceRef(document="PO-1001.pdf", page=1)
 GR_REF = SourceRef(document="GR-1001.pdf", page=1)
@@ -50,3 +52,11 @@ def test_line_total_flag():
     bad = invoice.model_copy(update={"lines": [invoice.lines[0].model_copy(update={"line_total": D("6300.00")})]})
     [f] = line_total_variance(bad)
     assert f.flag == Flag.LINE_TOTAL_MISMATCH and f.amount == D("100.00")
+
+
+def test_unmatched_invoice_line():
+    extra = LineItem(item_no="99", description="Energy surcharge", quantity=D(1), unit_price=D(85), line_total=D(85),
+                     source=INV_REF)
+    inv = invoice.model_copy(update={"lines": invoice.lines + [extra]})
+    assert [ln.item_no for ln in unmatched_lines(po, inv)] == ["99"]
+    assert unmatched_lines(po, invoice) == []

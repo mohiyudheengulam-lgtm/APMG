@@ -2,6 +2,8 @@
 
     uv run python scripts/run_benchmark.py --tag pilot --packages PKG-001 PKG-014 PKG-024 --runs 1
     uv run python scripts/run_benchmark.py --tag full            # 24 packages × 2 paths × 3 runs
+    uv run python scripts/run_benchmark.py --tag full-assisted --assisted
+        # invoice, PO and goods receipt come from the verified extraction; the agent retrieves and judges MSA clauses
 
 Writes results/<tag>/{aod.sqlite, audit/*.json, manifest.json}. Re-running a tag skips finished
 (package, path, run) combinations, so an interrupted benchmark can resume.
@@ -55,6 +57,7 @@ def manifest(args) -> dict:
         "ollama_kv_cache_type": ollama_env("OLLAMA_KV_CACHE_TYPE"),
         "model": MODEL, "embed_model": EMBED_MODEL, "run_options": RUN_OPTIONS, "think": THINK, "max_steps": MAX_STEPS,
         "packages": args.packages, "paths": args.paths, "runs": args.runs,
+        "mode": "assisted" if args.assisted else "research",
     }
 
 
@@ -74,6 +77,8 @@ def main():
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--data", type=Path, default=Path("data/packages"))
     ap.add_argument("--index", type=Path, default=Path("data/index"))
+    ap.add_argument("--assisted", action="store_true",
+                    help="pre-submit invoice, PO and goods receipt from the verified extraction (recorded in the manifest)")
     ap.add_argument("--allow-parallel", action="store_true",
                     help="run even if OLLAMA_NUM_PARALLEL is not 1 (recorded in the manifest)")
     args = ap.parse_args()
@@ -95,7 +100,7 @@ def main():
 
     print("warm-up (discarded) ...", flush=True)
     for path in args.paths:
-        pipeline.verify(pkgs[0], path, args.index)
+        pipeline.verify(pkgs[0], path, args.index, assisted=args.assisted)
 
     done = done_runs(out / "audit")
     todo = [(p, path, r) for r in range(1, args.runs + 1) for p in pkgs for path in args.paths
@@ -103,10 +108,12 @@ def main():
     print(f"{len(todo)} verifications to run (sequential)", flush=True)
     t0 = time.perf_counter()
     for i, (pdir, path, r) in enumerate(todo, 1):
-        run, vid = pipeline.verify(pdir, path, args.index, writer, extra={"run": r, "tag": args.tag})
+        run, vid = pipeline.verify(pdir, path, args.index, writer, extra={"run": r, "tag": args.tag},
+                                   assisted=args.assisted)
         rec = run.recommendation.label if run.recommendation else "-"
         eta = (time.perf_counter() - t0) / i * (len(todo) - i) / 60
-        print(f"[{i}/{len(todo)}] {pdir.name} {path} run{r}: {run.status.value} {run.seconds:.0f}s {rec}  (eta {eta:.0f} min)",
+        print(f"[{i}/{len(todo)}] {pdir.name} {path} run{r} ({run.mode}): {run.status.value} {run.seconds:.0f}s {rec}"
+              f"  (eta {eta:.0f} min)",
               flush=True)
 
 
