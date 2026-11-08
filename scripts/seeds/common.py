@@ -196,6 +196,7 @@ def render_pdf(path: Path, spec: RenderSpec, metadata: dict) -> int:
                 y = top_of_page = new_page()
     writer.end_page()
     writer.close()
+    writer = None  # Release the native writer and its file handle.
 
     doc = pymupdf.open(str(tmp))
     total = doc.page_count

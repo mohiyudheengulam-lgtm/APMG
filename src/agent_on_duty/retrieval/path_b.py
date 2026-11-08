@@ -140,7 +140,7 @@ def convert_contract(doc: ExtractedDocument, out_dir: Path) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     for rel, content in files.items():
         (out_dir / rel).parent.mkdir(parents=True, exist_ok=True)
-        (out_dir / rel).write_text(content)
+        (out_dir / rel).write_text(content, encoding="utf-8")
     stats = {"path": "B", "concepts": len(files), "build_seconds": round(time.perf_counter() - t0, 3),
              "storage_bytes": sum(f.stat().st_size for f in out_dir.rglob("*.md"))}
     (out_dir / "build.json").write_text(json.dumps(stats, indent=1))
@@ -195,7 +195,7 @@ def convert(package_dir: Path, out_dir: Path, pkg=None, t_extract: float | None 
         if not content:  # mounted from the library
             continue
         (out_dir / rel).parent.mkdir(parents=True, exist_ok=True)
-        (out_dir / rel).write_text(content)
+        (out_dir / rel).write_text(content, encoding="utf-8")
     stats = {
         "path": "B", "package_id": pkg.package_id, "concepts": sum(1 for c in files.values() if c),
         "extract_seconds": round(t_extract or 0, 3), "build_seconds": round(time.perf_counter() - t0 + (t_extract or 0), 3),
@@ -230,7 +230,7 @@ class PathBBundle:
             target = target / "index.md"
         if not target.exists() or target.suffix != ".md":
             raise FileNotFoundError(path)
-        return target.read_text()
+        return target.read_text(encoding="utf-8")
 
     def meta(self, path: str) -> dict:
         text = self.read(path)
