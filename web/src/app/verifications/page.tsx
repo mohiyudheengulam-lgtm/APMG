@@ -48,9 +48,9 @@ export default function VerificationsPage() {
               </thead>
               <tbody>
                 {shown.map((r) => (
-                  <tr key={r.id} className="border-b border-line last:border-0 hover:bg-[#faf9f8]">
+                  <tr key={r.id} className="border-b border-line last:border-0 hover:bg-surface">
                     <td className="py-2 pr-3 font-semibold">
-                      <Link href={`/verifications/view?id=${r.id}`} className="text-[#2a78d6] hover:underline">
+                      <Link href={`/verifications/view?id=${r.id}`} className="text-link hover:underline">
                         {r.package_id}
                       </Link>
                     </td>
@@ -65,7 +65,7 @@ export default function VerificationsPage() {
                     <td className="py-2 pr-3 text-right">{secs(r.seconds)}</td>
                     <td className="py-2 pr-3 text-right">{num(r.prompt_tokens)}</td>
                     <td className="py-2 pr-3 text-right">{r.steps}</td>
-                    <td className={`py-2 pr-3 text-right ${r.invalid_tool_calls ? "text-[#a4262c]" : ""}`}>{r.invalid_tool_calls ?? "–"}</td>
+                    <td className={`py-2 pr-3 text-right ${r.invalid_tool_calls ? "text-bad" : ""}`}>{r.invalid_tool_calls ?? "–"}</td>
                     <td className="py-2 pr-3 text-ink-2">{when(r.created_at)}</td>
                     <td className="py-2">
                       <ReviewPill state={r.review_state} decision={r.decision} />
@@ -83,9 +83,9 @@ export default function VerificationsPage() {
 
 function Seg<T extends string>({ value, set, options }: { value: T; set: (v: T) => void; options: [T, string][] }) {
   return (
-    <div className="inline-flex overflow-hidden rounded border border-line bg-white text-xs">
+    <div className="inline-flex gap-1 rounded-full bg-surface-2 p-1 text-xs font-semibold">
       {options.map(([v, l]) => (
-        <button key={v} onClick={() => set(v)} className={`px-2.5 py-1.5 ${value === v ? "bg-[#252423] text-white" : "text-ink-2 hover:bg-[#faf9f8]"}`}>
+        <button key={v} onClick={() => set(v)} className={`rounded-full px-3.5 py-1.5 ${value === v ? "bg-tile text-ink shadow-sm" : "text-ink-2 hover:text-ink"}`}>
           {l}
         </button>
       ))}

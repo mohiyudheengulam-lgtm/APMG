@@ -42,7 +42,7 @@ export default function BenchmarkPage() {
   const both = (k: keyof PathSummary, f: (v: number) => string) =>
     PATHS.filter((p) => s?.[p]).map((p) => (
       <span key={p} className="mr-3">
-        <span className="text-xs font-semibold" style={{ color: p === "A" ? "#2a78d6" : "#eb6834" }}>
+        <span className="text-xs font-semibold" style={{ color: p === "A" ? "var(--series-a)" : "var(--series-b)" }}>
           {p}
         </span>{" "}
         {f(s![p]![k] as number)}
@@ -57,7 +57,7 @@ export default function BenchmarkPage() {
         sub="Controlled comparison on the generated corpus (Exposé §6). Small corpus — descriptive only."
         right={
           tags?.length ? (
-            <select value={tag} onChange={(e) => setTag(e.target.value)} className="rounded border border-line bg-white px-2 py-1.5 text-sm">
+            <select value={tag} onChange={(e) => setTag(e.target.value)} className="rounded-xl border border-line bg-white px-2 py-1.5 text-sm">
               {tags.map((t) => (
                 <option key={t}>{t}</option>
               ))}
@@ -163,10 +163,10 @@ export default function BenchmarkPage() {
               {Object.keys(s._routing ?? {}).length ? (
                 <ul className="flex flex-col gap-2 text-[13px]">
                   {Object.entries(s._routing).map(([g, r]) => (
-                    <li key={g} className="rounded border border-line p-2">
+                    <li key={g} className="rounded-xl border border-line p-2">
                       <div className="font-semibold">{g}</div>
                       <div>
-                        → Path <b style={{ color: r.path === "A" ? "#2a78d6" : "#eb6834" }}>{r.path}</b>
+                        → Path <b style={{ color: r.path === "A" ? "var(--series-a)" : "var(--series-b)" }}>{r.path}</b>
                       </div>
                       <div className="text-xs text-ink-2">{r.reason}</div>
                     </li>
@@ -204,7 +204,7 @@ export default function BenchmarkPage() {
                 </thead>
                 <tbody>
                   {b!.runs.map((r, i) => (
-                    <tr key={i} className={`border-b border-line last:border-0 ${r.correct === "False" ? "bg-[#fdf6f6]" : ""}`}>
+                    <tr key={i} className={`border-b border-line last:border-0 ${r.correct === "False" ? "bg-bad-soft" : ""}`}>
                       {Object.values(r).map((v, j) => (
                         <td key={j} className="py-1 pr-3">
                           {v}

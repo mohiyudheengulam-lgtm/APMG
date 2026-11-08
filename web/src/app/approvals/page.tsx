@@ -28,9 +28,9 @@ export default function ApprovalsPage() {
         title="Manager approvals"
         sub="Human-in-the-loop gate: the agent recommends; only a recorded manager decision is final."
         right={
-          <div className="inline-flex overflow-hidden rounded border border-line bg-white text-xs">
+          <div className="inline-flex gap-1 rounded-full bg-surface-2 p-1 text-xs font-semibold">
             {(["flagged", "all"] as const).map((v) => (
-              <button key={v} onClick={() => setOnly(v)} className={`px-2.5 py-1.5 ${only === v ? "bg-[#252423] text-white" : "text-ink-2 hover:bg-[#faf9f8]"}`}>
+              <button key={v} onClick={() => setOnly(v)} className={`rounded-full px-3.5 py-1.5 ${only === v ? "bg-tile text-ink shadow-sm" : "text-ink-2 hover:text-ink"}`}>
                 {v === "flagged" ? "Needs attention" : "All pending"}
               </button>
             ))}

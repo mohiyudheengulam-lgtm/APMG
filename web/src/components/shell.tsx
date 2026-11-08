@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, CheckSquare, ChevronsLeft, ChevronsRight, FileSignature, FlaskConical, PlayCircle, ScanSearch } from "lucide-react";
+import { BarChart3, CheckSquare, ChevronsLeft, ChevronsRight, Cpu, FileSignature, FlaskConical, PlayCircle, ScanSearch, WifiOff } from "lucide-react";
 import { Source, useApi } from "@/lib/api";
 import { useSource } from "./source";
 
@@ -28,40 +28,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const current = NAV.find((n) => (n.href === "/" ? path === "/" : path.startsWith(n.href)));
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 flex h-12 items-center gap-3 bg-bar px-4 text-white shadow">
-        <div className="h-[22px] w-[22px] rounded-[3px] bg-[linear-gradient(135deg,#f2c811_0_50%,#e8a800_50%)]" aria-hidden />
-        <span className="text-[15px] font-semibold tracking-wide">Agent On Duty</span>
-        <span className="text-[#8a8886]">/</span>
-        <span className="text-sm text-[#d2d0ce]">{current?.label ?? ""}</span>
-        <div className="ml-auto flex items-center gap-3">
-          {error ? (
-            <span className="rounded-full bg-[#a4262c] px-3 py-0.5 text-xs">API offline — start uvicorn</span>
-          ) : null}
-          <label className="flex items-center gap-2 text-xs text-[#d2d0ce]">
-            Data source
-            <select
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              className="rounded border border-[#484644] bg-[#323130] px-2 py-1 text-xs text-white outline-none focus:border-accent"
-            >
-              {(sources ?? [{ id: "app", label: "This workstation" }]).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <span className="hidden rounded-full border border-[#484644] px-3 py-0.5 text-xs text-[#d2d0ce] md:inline">
-            Qwen3-1.7B · Ollama · local
-          </span>
-        </div>
-      </header>
-
-      <div className="flex flex-1">
-        <aside className={`shrink-0 border-r border-line bg-nav transition-[width] ${open ? "w-52" : "w-14"}`}>
-        <nav className="sticky top-12 flex h-[calc(100vh-3rem)] flex-col">
-          <ul className="mt-3 flex flex-col gap-0.5 px-2">
+    <div className="flex min-h-screen">
+      <aside className={`shrink-0 bg-tile transition-[width] ${open ? "w-60" : "w-[76px]"}`}>
+        <nav className="sticky top-0 flex h-screen flex-col px-3 py-5">
+          <Link href="/" className="mb-8 flex items-center gap-2.5 px-2.5">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-[15px] font-black text-on-primary" aria-hidden>
+              A
+            </span>
+            {open && <span className="text-[17px] font-bold tracking-tight">Agent On Duty</span>}
+          </Link>
+          <ul className="flex flex-col gap-1">
             {NAV.map(({ href, label, icon: Icon }) => {
               const active = current?.href === href;
               return (
@@ -69,11 +45,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
                   <Link
                     href={href}
                     title={label}
-                    className={`flex items-center gap-3 rounded px-2.5 py-2 text-sm ${
-                      active ? "bg-[#edebe9] font-semibold text-ink" : "text-ink-2 hover:bg-[#f3f2f1]"
+                    className={`flex items-center gap-3 rounded-full px-3.5 py-2.5 text-[15px] transition-colors ${
+                      active ? "bg-primary-soft font-semibold text-primary-deep" : "text-ink-2 hover:bg-surface hover:text-ink"
                     }`}
                   >
-                    <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className={active ? "text-ink" : "text-ink-2"} />
+                    <Icon size={20} strokeWidth={active ? 2.3 : 1.9} />
                     {open && <span>{label}</span>}
                   </Link>
                 </li>
@@ -82,16 +58,45 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </ul>
           <button
             onClick={() => setOpen(!open)}
-            className="mx-2 mt-auto mb-3 flex items-center gap-2 rounded px-2.5 py-2 text-xs text-ink-2 hover:bg-[#f3f2f1]"
+            className="mt-auto flex items-center gap-3 rounded-full px-3.5 py-2.5 text-sm text-ink-2 hover:bg-surface"
             aria-label={open ? "Collapse navigation" : "Expand navigation"}
           >
-            {open ? <ChevronsLeft size={16} /> : <ChevronsRight size={16} />}
+            {open ? <ChevronsLeft size={18} /> : <ChevronsRight size={18} />}
             {open && "Collapse"}
           </button>
         </nav>
-        </aside>
-        <main className="min-w-0 flex-1 px-6 py-5">
-          <div className="mx-auto max-w-[1500px]">{children}</div>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 bg-canvas/85 px-8 backdrop-blur">
+          <span className="text-sm font-medium text-ink-2">{current?.label ?? ""}</span>
+          <div className="ml-auto flex items-center gap-2">
+            {error ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-bad-soft px-3 py-1.5 text-xs font-semibold text-bad">
+                <WifiOff size={13} /> API offline — start uvicorn
+              </span>
+            ) : null}
+            <label className="flex items-center gap-2 rounded-full bg-tile py-1 pr-1 pl-3.5 text-xs font-medium text-ink-2 shadow-[0_0_0_1px_rgba(14,15,12,0.06)]">
+              Data source
+              <select
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                className="rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink outline-none focus:ring-2 focus:ring-primary"
+              >
+                {(sources ?? [{ id: "app", label: "This workstation" }]).map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <span className="hidden items-center gap-1.5 rounded-full bg-tile px-3.5 py-2 text-xs font-medium text-ink-2 shadow-[0_0_0_1px_rgba(14,15,12,0.06)] md:inline-flex">
+              <Cpu size={13} /> Qwen3-1.7B · local
+            </span>
+          </div>
+        </header>
+        <main className="min-w-0 flex-1 px-8 pt-2 pb-10">
+          <div className="mx-auto max-w-[1400px]">{children}</div>
         </main>
       </div>
     </div>
