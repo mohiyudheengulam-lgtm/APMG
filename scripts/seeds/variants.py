@@ -225,7 +225,7 @@ def generate(out_dir: Path, seed: int = 42, library: Path | None = None) -> list
     for seed_mod in SEEDS:
         name = seed_mod.CONFIG["package_name"]
         seed_dir = SEEDS_OUT / name
-        seed_gt = json.loads((seed_dir / "ground_truth.json").read_text())
+        seed_gt = json.loads((seed_dir / "ground_truth.json").read_text(encoding="utf-8"))
         register_contracts(seed_mod, library)
         for k, case in enumerate(CASES[name], start=1):
             idx += 1
