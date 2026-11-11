@@ -1,32 +1,5 @@
-# Who reviews what — see docs/TEAM_MANUAL.md §3. Later rules override earlier ones.
-# TODO: Rishikta's GitHub username — until then her parts fall back to the integrator.
+# Section ownership is pending team input — each member will review all 6 areas
+# and choose their preferred section. Until then, Mohiyudheen holds everything.
+# Update this file once the team has decided.
 
-# Default: evaluation + integration (Mohiyudheen)
 *                                            @mohiyudheengulam-lgtm
-
-# Benchmark data — Allen Smith
-/scripts/seeds/                              @BaneCrossbones
-/scripts/dataset_generator.py                @BaneCrossbones
-/data/seeds/                                 @BaneCrossbones
-
-# Extraction + contract library — Sara Shaban
-/src/agent_on_duty/extraction/               @sarash84
-/src/agent_on_duty/contracts.py              @sarash84
-
-# Path A — vector RAG — Vijayadharshan Periyasamy
-/src/agent_on_duty/retrieval/path_a.py       @VD7800
-/src/agent_on_duty/retrieval/corpus.py       @VD7800
-
-# Path B — OKF — Navya Gupta
-/src/agent_on_duty/retrieval/path_b.py       @navyaguptax
-/scripts/okf_bundle_converter.py             @navyaguptax
-
-# Agent + approval gate — Rishikta Nishikant Bhore (username pending)
-/src/agent_on_duty/agent/                    @mohiyudheengulam-lgtm
-/src/agent_on_duty/audit/                    @mohiyudheengulam-lgtm
-/src/agent_on_duty/tools/                    @mohiyudheengulam-lgtm
-
-# Shared — changes need two owners' approval (enforced by branch protection: 2 required reviews)
-/src/agent_on_duty/schemas.py                @mohiyudheengulam-lgtm @sarash84 @VD7800 @navyaguptax @BaneCrossbones
-/pyproject.toml                              @mohiyudheengulam-lgtm @sarash84 @VD7800 @navyaguptax @BaneCrossbones
-/docs/expose.md                              @mohiyudheengulam-lgtm @sarash84 @VD7800 @navyaguptax @BaneCrossbones
