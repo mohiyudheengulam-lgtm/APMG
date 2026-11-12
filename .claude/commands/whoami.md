@@ -1,12 +1,21 @@
-Ask the user their name, then say:
+Ask the user their name, then greet them by name, tell them their area, and say:
 
-"Here are the 6 areas of the project. Read through them all — you can ask me to explain any area in depth, show you the code, or walk you through how it fits into the system. Once you've had a look, let Mohiyudheen know which area you'd like to own."
+"Here are all 6 areas so you have the full picture. You can ask me to explain any area in depth, show you the code, or walk you through how it fits into the system."
+
+Area ownership:
+- Allen → Area 1
+- Sara → Area 2
+- Mohi → Area 3
+- Navya → Area 4
+- Rishiktha → Area 5
+- VD → Area 6
 
 Then show this:
 
 ---
 
 ## Area 1 — Evaluation & Integration
+**Owner: Allen**
 **Report section:** §6 Research Methodology & Evaluation Framework
 
 This is the glue of the whole project. Runs the full benchmark (144 verifications: 24 packages × 2 retrieval paths × 3 runs), scores the results against ground truth, and measures flag accuracy, latency, and token efficiency. Also owns the FastAPI backend that connects the agent to the UI.
@@ -20,6 +29,7 @@ This is the glue of the whole project. Runs the full benchmark (144 verification
 ---
 
 ## Area 2 — Document Extraction & Pipeline Architecture
+**Owner: Sara**
 **Report section:** §5 System Architecture
 
 Handles getting information out of PDFs — purchase orders, invoices, goods receipts, and MSAs. Uses PyMuPDF with Tesseract OCR as a fallback for scanned documents. Also owns the 3-way match logic (does the invoice match the PO and goods receipt?) and the shared Pydantic data schemas the whole team depends on.
@@ -34,6 +44,7 @@ Handles getting information out of PDFs — purchase orders, invoices, goods rec
 ---
 
 ## Area 3 — ReAct Agent Loop & HITL Gate
+**Owner: Mohi**
 **Report section:** §2 Research Questions, §4 Human-in-the-Loop
 
 The brain of the system. A ReAct loop running on Qwen3-1.7B (1.7 billion parameters, running fully locally via Ollama) that calls tools, retrieves documents, checks discrepancies, and produces a recommendation. The HITL (Human-in-the-Loop) gate enforces that the agent can never write a final decision — only a human manager can do that. Also owns the SQLite audit log that records every step.
@@ -45,6 +56,7 @@ The brain of the system. A ReAct loop running on Qwen3-1.7B (1.7 billion paramet
 ---
 
 ## Area 4 — OKF Retrieval & Frontend
+**Owner: Navya**
 **Report section:** §1 Introduction, §8 Conclusion
 
 Owns Path B — the OKF (Open Knowledge Format) retrieval approach. Instead of searching a vector index, the agent navigates structured Markdown concept files (one per document, one per MSA section) with YAML metadata. Also owns the entire Next.js frontend: dashboard, verification view, approvals page, benchmark results.
@@ -58,6 +70,7 @@ Owns Path B — the OKF (Open Knowledge Format) retrieval approach. Instead of s
 ---
 
 ## Area 5 — Vector RAG & Calculation Tools
+**Owner: Rishiktha**
 **Report section:** §3 Theoretical Background
 
 Owns Path A — the standard vector RAG retrieval approach. Splits PDFs into 500-token chunks, embeds them with nomic-embed-text (via Ollama), stores them in a FAISS index, and retrieves the top-5 most similar chunks for each query. Also owns the deterministic calculation tools (price variance, quantity variance, line-total checks) that the agent calls instead of doing arithmetic itself.
@@ -71,6 +84,7 @@ Owns Path A — the standard vector RAG retrieval approach. Splits PDFs into 500
 ---
 
 ## Area 6 — Dataset & Benchmark Generation
+**Owner: VD**
 **Report section:** §7 Dataset Description, §9 Project Schedule
 
 Built the synthetic benchmark from scratch. Two seed supplier relationships (packaging/fasteners and electronic components), each producing 12 package variants with injected discrepancies. Every package has known ground-truth flags so results can be scored. Also responsible for the project schedule and Gantt chart.
@@ -83,4 +97,4 @@ Built the synthetic benchmark from scratch. Two seed supplier relationships (pac
 
 ---
 
-After showing the areas, offer to: explain any area in more detail, show the actual code for any file, or walk through how the areas connect to each other.
+After showing the areas, offer to: explain their area in more detail, show the actual code for any file, or walk through how the areas connect to each other.

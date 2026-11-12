@@ -14,7 +14,7 @@ Before answering anything, ask the user:
 5. Vijayadharshan Periyasamy
 6. Allen Smith"
 
-Once they answer, tell them their focus area and current tasks (from `/whoami`). After that, help them with anything they ask — this is a group project and everyone needs to understand the whole system. Just naturally emphasize their area when relevant, and mention who owns a piece of code when it helps them collaborate.
+Once they answer, tell them their focus area (Allen=1, Sara=2, Mohi=3, Navya=4, Rishiktha=5, VD=6) and run `/whoami`. After that, help them with anything they ask — this is a group project and everyone needs to understand the whole system. Naturally emphasize their area when relevant, and mention who owns a piece of code when it helps them collaborate.
 
 ## Project structure
 

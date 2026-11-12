@@ -1,5 +1,48 @@
-# Section ownership is pending team input — each member will review all 6 areas
-# and choose their preferred section. Until then, Mohiyudheen holds everything.
-# Update this file once the team has decided.
+# Area owners — assigned 2026-11-12
+# Area 1 (Evaluation & Integration)   — Allen    @BaneCrossbones
+# Area 2 (Extraction & Architecture)  — Sara     @sarash84
+# Area 3 (ReAct Agent & HITL Gate)    — Mohi     @mohiyudheengulam-lgtm
+# Area 4 (OKF Retrieval & Frontend)   — Navya    @navyaguptax
+# Area 5 (Vector RAG & Tools)         — Rishiktha @rishiktha-TBD  ← update when received
+# Area 6 (Dataset & Seeds)            — VD       @VD7800
 
+# Area 1 — Allen
+scripts/run_benchmark.py                     @BaneCrossbones
+scripts/evaluate.py                          @BaneCrossbones
+src/agent_on_duty/api.py                     @BaneCrossbones
+src/agent_on_duty/benchmark/                 @BaneCrossbones
+
+# Area 2 — Sara
+src/agent_on_duty/extraction/                @sarash84
+src/agent_on_duty/contracts.py               @sarash84
+src/agent_on_duty/pipeline.py                @sarash84
+src/agent_on_duty/schemas.py                 @sarash84 @mohiyudheengulam-lgtm
+
+# Area 3 — Mohi
+src/agent_on_duty/agent/                     @mohiyudheengulam-lgtm
+src/agent_on_duty/audit/                     @mohiyudheengulam-lgtm
+
+# Area 4 — Navya
+src/agent_on_duty/retrieval/path_b.py        @navyaguptax
+scripts/okf_bundle_converter.py              @navyaguptax
+web/                                         @navyaguptax
+docs/                                        @navyaguptax
+README.md                                    @navyaguptax
+
+# Area 5 — Rishiktha (username TBD — update this file when received)
+src/agent_on_duty/retrieval/path_a.py        @mohiyudheengulam-lgtm
+src/agent_on_duty/retrieval/corpus.py        @mohiyudheengulam-lgtm
+src/agent_on_duty/tools/                     @mohiyudheengulam-lgtm
+src/agent_on_duty/cli.py                     @mohiyudheengulam-lgtm
+
+# Area 6 — VD
+scripts/seeds/                               @VD7800
+scripts/dataset_generator.py                 @VD7800
+data_pipeline/                               @VD7800
+src/agent_on_duty/paths.py                   @VD7800
+
+# pyproject.toml and schemas.py need 2 reviews (project rule)
+pyproject.toml                               @mohiyudheengulam-lgtm @sarash84
+
+# Everything else defaults to Mohi
 *                                            @mohiyudheengulam-lgtm
