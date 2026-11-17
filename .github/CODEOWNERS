@@ -3,7 +3,7 @@
 # Area 2 (Extraction & Architecture)  — Sara     @sarash84
 # Area 3 (ReAct Agent & HITL Gate)    — Mohi     @mohiyudheengulam-lgtm
 # Area 4 (OKF Retrieval & Frontend)   — Navya    @navyaguptax
-# Area 5 (Vector RAG & Tools)         — Rishiktha @rishiktha-TBD  ← update when received
+# Area 5 (Vector RAG & Tools)         — Rishiktha @rishiktab
 # Area 6 (Dataset & Seeds)            — VD       @VD7800
 
 # Area 1 — Allen
@@ -29,11 +29,11 @@ web/                                         @navyaguptax
 docs/                                        @navyaguptax
 README.md                                    @navyaguptax
 
-# Area 5 — Rishiktha (username TBD — update this file when received)
-src/agent_on_duty/retrieval/path_a.py        @mohiyudheengulam-lgtm
-src/agent_on_duty/retrieval/corpus.py        @mohiyudheengulam-lgtm
-src/agent_on_duty/tools/                     @mohiyudheengulam-lgtm
-src/agent_on_duty/cli.py                     @mohiyudheengulam-lgtm
+# Area 5 — Rishiktha
+src/agent_on_duty/retrieval/path_a.py        @rishiktab
+src/agent_on_duty/retrieval/corpus.py        @rishiktab
+src/agent_on_duty/tools/                     @rishiktab
+src/agent_on_duty/cli.py                     @rishiktab
 
 # Area 6 — VD
 scripts/seeds/                               @VD7800
