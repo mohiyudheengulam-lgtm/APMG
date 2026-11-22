@@ -279,6 +279,7 @@ class PathBBundle:
         if not target.exists() or target.suffix != ".md":
             available = "index.md, invoice.md, purchase_order.md, delivery_note.md, goods_receipt.md, guideline.md, msa/index.md"
             raise FileNotFoundError(f"{path} — use concept filenames or start with index.md. Available: {available}")
+            raise FileNotFoundError(path)
         return target.read_text(encoding="utf-8")
 
     def meta(self, path: str) -> dict:

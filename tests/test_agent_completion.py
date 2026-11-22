@@ -3,6 +3,7 @@
 import pytest
 
 from agent_on_duty.agent.react import CheckSurchargeArgs, ReportMissingArgs, SubmitDocumentArgs, Verifier
+from agent_on_duty.agent.react import SubmitDocumentArgs, Verifier
 
 
 class FakeRetrieval:
