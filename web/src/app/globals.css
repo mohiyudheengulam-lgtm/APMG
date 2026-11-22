@@ -1,36 +1,64 @@
 @import "tailwindcss";
 
-/* Report-style tokens (Power BI-like light canvas). Chart colors follow the dataviz reference palette. */
+/* Consumer-fintech look: warm off-white canvas, large rounded white cards, bold tight headings,
+   lime primary with deep-green text, soft tinted status chips. Chart series stay distinguishable. */
 :root {
-  --canvas: #f3f2f1;
+  --canvas: #f4f4f1;
   --tile: #ffffff;
-  --bar: #252423;
-  --nav: #faf9f8;
-  --line: #e1dfdd;
-  --ink: #252423;
-  --ink-2: #605e5c;
-  --muted: #8a8886;
-  --accent: #f2c811;
-  --series-a: #2a78d6;
-  --series-b: #eb6834;
-  --good: #107c10;
-  --bad: #a4262c;
-  --warn: #8a6d00;
+  --surface: #f4f4f1;
+  --surface-2: #ebece7;
+  --line: #e6e7e2;
+  --line-strong: #cfd1ca;
+  --ink: #0e0f0c;
+  --ink-2: #5d6159;
+  --muted: #8c8f88;
+  --primary: #9fe870;
+  --primary-hover: #8fdc5d;
+  --primary-soft: #e8f7dc;
+  --primary-deep: #163300;
+  --on-primary: #163300;
+  --link: #2f5711;
+  --series-a: #3a6ff0;
+  --series-b: #ff8a3d;
+  --good: #1e7a3c;
+  --good-soft: #e3f4e6;
+  --good-line: #bfe3c6;
+  --bad: #c0302a;
+  --bad-soft: #fde9e7;
+  --bad-line: #f5c2bd;
+  --warn: #8a5b00;
+  --warn-soft: #fff3d6;
+  --warn-line: #f1d48e;
 }
 
 @theme inline {
   --color-canvas: var(--canvas);
   --color-tile: var(--tile);
-  --color-bar: var(--bar);
-  --color-nav: var(--nav);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-muted: var(--muted);
-  --color-accent: var(--accent);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-deep: var(--primary-deep);
+  --color-on-primary: var(--on-primary);
+  --color-link: var(--link);
   --color-series-a: var(--series-a);
   --color-series-b: var(--series-b);
-  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-good-line: var(--good-line);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-bad-line: var(--bad-line);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-line: var(--warn-line);
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
@@ -39,20 +67,70 @@ body {
   background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 .tile {
   background: var(--tile);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  box-shadow: 0 1.6px 3.6px rgba(0, 0, 0, 0.08), 0 0.3px 0.9px rgba(0, 0, 0, 0.06);
+  border-radius: 24px;
+  box-shadow: 0 0 0 1px rgba(14, 15, 12, 0.04), 0 1px 2px rgba(14, 15, 12, 0.04);
 }
 
 .num {
   font-variant-numeric: tabular-nums;
 }
 
+/* primary / secondary actions are pills */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+  transition: background-color 0.15s, transform 0.1s;
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--line-strong);
+  background: var(--tile);
+  color: var(--ink);
+  font-weight: 600;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.btn-secondary:hover {
+  background: var(--surface);
+  border-color: var(--ink);
+}
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.45;
+  transform: none;
+}
+
+table th {
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
 /* recharts focus outline off; hover tooltips carry the info */
 .recharts-wrapper *:focus {
   outline: none;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--primary-deep);
 }

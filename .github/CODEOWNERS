@@ -1,32 +1,48 @@
-# Who reviews what — see docs/TEAM_MANUAL.md §3. Later rules override earlier ones.
-# TODO: Rishikta's GitHub username — until then her parts fall back to the integrator.
+# Area owners — assigned 2026-11-12
+# Area 1 (Evaluation & Integration)   — Allen    @BaneCrossbones
+# Area 2 (Extraction & Architecture)  — Sara     @sarash84
+# Area 3 (ReAct Agent & HITL Gate)    — Mohi     @mohiyudheengulam-lgtm
+# Area 4 (OKF Retrieval & Frontend)   — Navya    @navyaguptax
+# Area 5 (Vector RAG & Tools)         — Rishiktha @rishiktab
+# Area 6 (Dataset & Seeds)            — VD       @VD7800
 
-# Default: evaluation + integration (Mohiyudheen)
+# Area 1 — Allen
+scripts/run_benchmark.py                     @BaneCrossbones
+scripts/evaluate.py                          @BaneCrossbones
+src/agent_on_duty/api.py                     @BaneCrossbones
+src/agent_on_duty/benchmark/                 @BaneCrossbones
+
+# Area 2 — Sara
+src/agent_on_duty/extraction/                @sarash84
+src/agent_on_duty/contracts.py               @sarash84
+src/agent_on_duty/pipeline.py                @sarash84
+src/agent_on_duty/schemas.py                 @sarash84 @mohiyudheengulam-lgtm
+
+# Area 3 — Mohi
+src/agent_on_duty/agent/                     @mohiyudheengulam-lgtm
+src/agent_on_duty/audit/                     @mohiyudheengulam-lgtm
+
+# Area 4 — Navya
+src/agent_on_duty/retrieval/path_b.py        @navyaguptax
+scripts/okf_bundle_converter.py              @navyaguptax
+web/                                         @navyaguptax
+docs/                                        @navyaguptax
+README.md                                    @navyaguptax
+
+# Area 5 — Rishiktha
+src/agent_on_duty/retrieval/path_a.py        @rishiktab
+src/agent_on_duty/retrieval/corpus.py        @rishiktab
+src/agent_on_duty/tools/                     @rishiktab
+src/agent_on_duty/cli.py                     @rishiktab
+
+# Area 6 — VD
+scripts/seeds/                               @VD7800
+scripts/dataset_generator.py                 @VD7800
+data_pipeline/                               @VD7800
+src/agent_on_duty/paths.py                   @VD7800
+
+# pyproject.toml and schemas.py need 2 reviews (project rule)
+pyproject.toml                               @mohiyudheengulam-lgtm @sarash84
+
+# Everything else defaults to Mohi
 *                                            @mohiyudheengulam-lgtm
-
-# Benchmark data — Allen Smith
-/scripts/seeds/                              @BaneCrossbones
-/scripts/dataset_generator.py                @BaneCrossbones
-/data/seeds/                                 @BaneCrossbones
-
-# Extraction + contract library — Sara Shaban
-/src/agent_on_duty/extraction/               @sarash84
-/src/agent_on_duty/contracts.py              @sarash84
-
-# Path A — vector RAG — Vijayadharshan Periyasamy
-/src/agent_on_duty/retrieval/path_a.py       @VD7800
-/src/agent_on_duty/retrieval/corpus.py       @VD7800
-
-# Path B — OKF — Navya Gupta
-/src/agent_on_duty/retrieval/path_b.py       @navyaguptax
-/scripts/okf_bundle_converter.py             @navyaguptax
-
-# Agent + approval gate — Rishikta Nishikant Bhore (username pending)
-/src/agent_on_duty/agent/                    @mohiyudheengulam-lgtm
-/src/agent_on_duty/audit/                    @mohiyudheengulam-lgtm
-/src/agent_on_duty/tools/                    @mohiyudheengulam-lgtm
-
-# Shared — changes need two owners' approval (enforced by branch protection: 2 required reviews)
-/src/agent_on_duty/schemas.py                @mohiyudheengulam-lgtm @sarash84 @VD7800 @navyaguptax @BaneCrossbones
-/pyproject.toml                              @mohiyudheengulam-lgtm @sarash84 @VD7800 @navyaguptax @BaneCrossbones
-/docs/expose.md                              @mohiyudheengulam-lgtm @sarash84 @VD7800 @navyaguptax @BaneCrossbones

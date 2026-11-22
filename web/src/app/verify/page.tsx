@@ -48,7 +48,7 @@ export default function VerifyPage() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <div className="flex flex-col gap-4">
           <Card title="Packages" right={<span className="text-xs text-ink-2">{pkgs?.length ?? 0} available</span>}>
-            <div className="mb-2 flex items-center gap-2 rounded border border-line px-2">
+            <div className="mb-2 flex items-center gap-2 rounded-xl border border-line px-2">
               <Search size={14} className="text-muted" />
               <input
                 value={filter}
@@ -62,8 +62,8 @@ export default function VerifyPage() {
                 <li key={p.id}>
                   <button
                     onClick={() => setSelected(p.id)}
-                    className={`mb-1 flex w-full items-center justify-between gap-2 rounded border px-3 py-2 text-left text-[13px] ${
-                      pkg?.id === p.id ? "border-[#2a78d6] bg-[#eff6fc]" : "border-transparent hover:bg-[#faf9f8]"
+                    className={`mb-1 flex w-full items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-[13px] ${
+                      pkg?.id === p.id ? "border-primary-deep bg-primary-soft" : "border-transparent hover:bg-surface"
                     }`}
                   >
                     <span>
@@ -75,12 +75,12 @@ export default function VerifyPage() {
                     <span className="flex items-center gap-1 text-[10px] text-ink-2">
                       <span
                         title={p.extraction?.status === "verified" ? "extraction verified against the documents' own totals" : p.extraction?.problems.join("\n")}
-                        className={p.extraction?.status === "verified" ? "text-[#107c10]" : "font-bold text-[#8a6d00]"}
+                        className={p.extraction?.status === "verified" ? "text-good" : "font-bold text-warn"}
                       >
                         {p.extraction?.status === "verified" ? "✓" : "⚠"}
                       </span>
                       {(["A", "B"] as const).map((x) => (
-                        <span key={x} className={`rounded px-1 ${p.indexed[x] ? "bg-[#edebe9]" : "text-muted"}`} title={p.indexed[x] ? "index built" : "not indexed yet"}>
+                        <span key={x} className={`rounded-xl px-1 ${p.indexed[x] ? "bg-surface-2" : "text-muted"}`} title={p.indexed[x] ? "index built" : "not indexed yet"}>
                           {x}
                         </span>
                       ))}
@@ -106,29 +106,29 @@ export default function VerifyPage() {
                       key={f}
                       href={pdfUrl(pkg.id, f)}
                       target="_blank"
-                      className="inline-flex items-center gap-1 rounded border border-line px-2 py-1 text-xs text-ink-2 hover:border-[#2a78d6] hover:text-[#2a78d6]"
+                      className="inline-flex items-center gap-1 rounded-xl border border-line px-2 py-1 text-xs text-ink-2 hover:border-primary-deep hover:text-link"
                     >
                       <FileText size={12} /> {f}
                     </a>
                   ))}
                 </div>
-                <div className="mb-3 rounded border border-line bg-[#faf9f8] px-3 py-2 text-xs text-ink-2">
+                <div className="mb-3 rounded-xl border border-line bg-surface px-3 py-2 text-xs text-ink-2">
                   <span className="font-semibold text-ink">From the contract library: </span>
                   {pkg.contracts.length ? (
                     pkg.contracts.map((c) => (
-                      <a key={c.id} href={pdfUrl(pkg.id, c.filename)} target="_blank" className="mr-2 inline-flex items-center gap-1 text-[#2a78d6] hover:underline">
+                      <a key={c.id} href={pdfUrl(pkg.id, c.filename)} target="_blank" className="mr-2 inline-flex items-center gap-1 text-link hover:underline">
                         <FileText size={11} /> {c.filename} ({c.kind === "msa" ? `MSA ${c.number ?? ""}` : "guideline"})
                       </a>
                     ))
                   ) : (
-                    <span className="text-[#a4262c]">
+                    <span className="text-bad">
                       no contract linked — add the supplier&apos;s MSA under <Link href="/contracts" className="underline">Contracts</Link>
                     </span>
                   )}
                 </div>
                 <div
-                  className={`mb-3 rounded border px-3 py-2 text-xs ${
-                    pkg.extraction?.status === "verified" ? "border-[#c6e7c6] bg-[#f1faf1] text-[#107c10]" : "border-[#f2d38a] bg-[#fff8e1] text-[#8a6d00]"
+                  className={`mb-3 rounded-xl border px-3 py-2 text-xs ${
+                    pkg.extraction?.status === "verified" ? "border-good-line bg-good-soft text-good" : "border-warn-line bg-warn-soft text-warn"
                   }`}
                 >
                   {pkg.extraction?.status === "verified" ? (
@@ -152,7 +152,7 @@ export default function VerifyPage() {
                     <button
                       key={x}
                       onClick={() => setPath(x)}
-                      className={`rounded border px-3 py-2.5 text-left ${path === x ? "border-[#2a78d6] bg-[#eff6fc]" : "border-line hover:bg-[#faf9f8]"}`}
+                      className={`rounded-xl border px-3 py-2.5 text-left ${path === x ? "border-primary-deep bg-primary-soft" : "border-line hover:bg-surface"}`}
                     >
                       <PathBadge path={x} />
                       <div className="mt-1 text-xs text-ink-2">
@@ -161,7 +161,7 @@ export default function VerifyPage() {
                     </button>
                   ))}
                 </div>
-                <label className="mb-3 flex cursor-pointer items-start gap-2 rounded border border-line px-3 py-2 text-xs text-ink-2">
+                <label className="mb-3 flex cursor-pointer items-start gap-2 rounded-xl border border-line px-3 py-2 text-xs text-ink-2">
                   <input type="checkbox" checked={assisted} onChange={(e) => setAssisted(e.target.checked)} className="mt-0.5" />
                   <span>
                     <span className="inline-flex items-center gap-1 font-semibold text-ink">
@@ -175,7 +175,7 @@ export default function VerifyPage() {
                 <button
                   onClick={run}
                   disabled={!!busy}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded bg-[#2a78d6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#256abf] disabled:opacity-50"
+                  className="btn-primary w-full px-4 py-2.5 text-sm font-semibold"
                 >
                   <Play size={16} /> {busy ? "Verification running…" : "Run verification"}
                 </button>
@@ -193,12 +193,12 @@ export default function VerifyPage() {
                   <li key={j.id} className="flex items-center justify-between gap-2 border-b border-line py-1.5 last:border-0">
                     <span className="flex items-center gap-2">
                       <span className="font-semibold">{j.package}</span> <PathBadge path={j.path} />
-                      {j.assisted && <span className="rounded bg-[#fff4ce] px-1.5 text-[10px] font-semibold text-[#8a6d00]">assisted</span>}
+                      {j.assisted && <span className="rounded-xl bg-warn-soft px-1.5 text-[10px] font-semibold text-warn">assisted</span>}
                     </span>
                     <span className="flex items-center gap-2">
                       {j.status === "done" ? <FlagChips recommendation={j.recommendation ?? null} /> : <span className="text-xs text-ink-2">{j.stage}</span>}
                       {j.verification_id && (
-                        <Link href={`/verifications/view?id=${j.verification_id}`} className="text-xs font-semibold text-[#2a78d6] hover:underline">
+                        <Link href={`/verifications/view?id=${j.verification_id}`} className="text-xs font-semibold text-link hover:underline">
                           Evidence
                         </Link>
                       )}
@@ -222,11 +222,11 @@ function LiveJob({ job }: { job: Job }) {
       title={`Verification progress · ${job.package}`}
       right={
         job.status === "done" ? (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#107c10]">
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-good">
             <CheckCircle2 size={14} /> Saved as PENDING_REVIEW
           </span>
         ) : job.status === "error" ? (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#a4262c]">
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-bad">
             <XCircle size={14} /> Failed
           </span>
         ) : (
@@ -240,24 +240,24 @@ function LiveJob({ job }: { job: Job }) {
           ["Agent time", secs(seconds)],
           ["Input tokens", num(tokens)],
         ].map(([l, v]) => (
-          <div key={l} className="rounded bg-[#faf9f8] py-2">
+          <div key={l} className="rounded-xl bg-surface py-2">
             <div className="text-[11px] uppercase tracking-wider text-ink-2">{l}</div>
             <div className="num text-lg font-semibold">{v}</div>
           </div>
         ))}
       </div>
-      <div className="mb-3 h-1.5 rounded-full bg-[#edebe9]">
+      <div className="mb-3 h-1.5 rounded-full bg-surface-2">
         <div
-          className={`h-1.5 rounded-full transition-all ${job.status === "error" ? "bg-[#d13438]" : "bg-[#2a78d6]"}`}
+          className={`h-1.5 rounded-full transition-all ${job.status === "error" ? "bg-bad" : "bg-primary"}`}
           style={{ width: `${job.status === "done" ? 100 : Math.min(job.steps.length * 10, 95)}%` }}
         />
       </div>
-      {job.error && <p className="mb-2 text-sm text-[#a4262c]">{job.error}</p>}
+      {job.error && <p className="mb-2 text-sm text-bad">{job.error}</p>}
       <StepList steps={job.steps} live />
       {job.status === "done" && (
-        <div className="mt-3 flex items-center justify-between gap-2 rounded bg-[#faf9f8] px-3 py-2">
+        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2">
           <FlagChips recommendation={job.recommendation ?? null} />
-          <Link href={`/verifications/view?id=${job.verification_id}`} className="text-sm font-semibold text-[#2a78d6] hover:underline">
+          <Link href={`/verifications/view?id=${job.verification_id}`} className="text-sm font-semibold text-link hover:underline">
             Open evidence →
           </Link>
         </div>
@@ -302,7 +302,7 @@ function BatchCard({ packages, assisted }: { packages: string[]; assisted: boole
         <button
           onClick={queue}
           disabled={!packages.length || !paths.length}
-          className="ml-auto inline-flex items-center gap-1.5 rounded border border-[#2a78d6] px-3 py-1.5 text-sm font-semibold text-[#2a78d6] hover:bg-[#eff6fc] disabled:opacity-40"
+          className="ml-auto btn-secondary px-4 py-1.5 text-sm"
         >
           <Layers size={14} /> Queue {packages.length * paths.length}
         </button>
@@ -342,7 +342,7 @@ function UploadCard({ onDone }: { onDone: (id: string) => void }) {
           e.preventDefault();
           setFiles([...e.dataTransfer.files].filter((f) => f.name.toLowerCase().endsWith(".pdf")));
         }}
-        className="flex cursor-pointer flex-col items-center gap-1 rounded border border-dashed border-[#c8c6c4] px-4 py-5 text-center text-sm text-ink-2 hover:border-[#2a78d6]"
+        className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-dashed border-line-strong px-4 py-5 text-center text-sm text-ink-2 hover:border-primary-deep"
       >
         <Upload size={20} />
         {files.length
@@ -351,11 +351,11 @@ function UploadCard({ onDone }: { onDone: (id: string) => void }) {
         <input ref={input} type="file" accept="application/pdf" multiple hidden onChange={(e) => setFiles([...(e.target.files ?? [])])} />
       </div>
       <div className="mt-3 flex gap-2">
-        <input value={name} onChange={(e) => setName(e.target.value)} className="min-w-0 flex-1 rounded border border-line px-2 py-1.5 text-sm" aria-label="Package name" />
+        <input value={name} onChange={(e) => setName(e.target.value)} className="min-w-0 flex-1 rounded-xl border border-line px-2 py-1.5 text-sm" aria-label="Package name" />
         <button
           onClick={submit}
           disabled={!files.length || !name}
-          className="rounded border border-[#2a78d6] px-3 py-1.5 text-sm font-semibold text-[#2a78d6] hover:bg-[#eff6fc] disabled:opacity-40"
+          className="btn-secondary px-4 py-1.5 text-sm"
         >
           Save
         </button>

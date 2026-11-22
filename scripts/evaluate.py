@@ -1,6 +1,7 @@
 """Evaluation (Exposé §6.3–6.5): audit records + ground truth → results/<tag>/summary.md and CSVs.
 
     uv run python scripts/evaluate.py --tag full
+    uv run python scripts/evaluate.py --tag full-assisted --assisted
 """
 
 import argparse
@@ -118,10 +119,10 @@ def pct(c, t):
     return 100.0 * c / t if t else float("nan")
 
 
-def evaluate(tag: str, data: Path, index: Path) -> dict:
+def evaluate(tag: str, data: Path, index: Path, mode: str = "research") -> dict:
     out = Path("results") / tag
     runs = [json.loads(f.read_text()) for f in sorted((out / "audit").glob("*.json"))]
-    runs = [r for r in runs if r.get("mode", "research") == "research"]  # assisted runs are never research data
+    runs = [r for r in runs if r.get("mode", "research") == mode]  # never mix research and assisted runs
     gts = {p.name: json.loads((p / "ground_truth.json").read_text()) for p in data.iterdir() if p.is_dir()}
     by_path = defaultdict(list)
     for r in runs:
@@ -279,6 +280,8 @@ if __name__ == "__main__":
     ap.add_argument("--tag", default="full")
     ap.add_argument("--data", type=Path, default=Path("data/packages"))
     ap.add_argument("--index", type=Path, default=Path("data/index"))
+    ap.add_argument("--assisted", action="store_true",
+                    help="score assisted-mode runs (documents pre-submitted from extraction) instead of research runs")
     args = ap.parse_args()
-    evaluate(args.tag, args.data, args.index)
+    evaluate(args.tag, args.data, args.index, "assisted" if args.assisted else "research")
     print((Path("results") / args.tag / "summary.md").read_text())

@@ -70,7 +70,7 @@ function ContractCard({ c, onChange }: { c: Contract; onChange: () => void }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${c.kind === "msa" ? "bg-[#eff6fc] text-[#1c5cab]" : "bg-[#f3f2f1] text-ink-2"}`}>
+            <span className={`rounded-xl px-1.5 py-0.5 text-[10px] font-semibold uppercase ${c.kind === "msa" ? "bg-primary-soft text-primary-deep" : "bg-surface-2 text-ink-2"}`}>
               {c.kind === "msa" ? "Master agreement" : "Guideline"}
             </span>
             <a href={`/api/contracts/${c.id}/file`} target="_blank" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline">
@@ -98,28 +98,28 @@ function ContractCard({ c, onChange }: { c: Contract; onChange: () => void }) {
         <span className="text-ink-2">Matched by:</span>
         {editing ? (
           <>
-            <input value={terms} onChange={(e) => setTerms(e.target.value)} className="min-w-0 flex-1 rounded border border-line px-2 py-1 text-sm" />
-            <button onClick={save} className="rounded bg-[#2a78d6] px-3 py-1 font-semibold text-white">Save</button>
+            <input value={terms} onChange={(e) => setTerms(e.target.value)} className="min-w-0 flex-1 rounded-xl border border-line px-2 py-1 text-sm" />
+            <button onClick={save} className="btn-primary px-3 py-1 font-semibold">Save</button>
             <button onClick={() => setEditing(false)} aria-label="Cancel" className="text-ink-2"><X size={14} /></button>
           </>
         ) : (
           <>
             {c.match_terms.length ? (
-              c.match_terms.map((t) => <code key={t} className="rounded bg-[#f3f2f1] px-1.5 py-0.5">{t}</code>)
+              c.match_terms.map((t) => <code key={t} className="rounded-xl bg-surface-2 px-1.5 py-0.5">{t}</code>)
             ) : (
-              <span className="text-[#a4262c]">nothing — this contract is never linked</span>
+              <span className="text-bad">nothing — this contract is never linked</span>
             )}
-            <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1 text-[#2a78d6] hover:underline"><Pencil size={11} /> edit</button>
+            <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1 text-link hover:underline"><Pencil size={11} /> edit</button>
           </>
         )}
         <span className="ml-auto flex items-center gap-3 text-ink-2">
           {Object.entries(c.build ?? {}).map(([p, b]) => (
             <span key={p} title="one-off preparation for this retrieval path">Path {p}: {num(b.build_seconds, 1)} s</span>
           ))}
-          <button onClick={remove} className="inline-flex items-center gap-1 text-[#a4262c] hover:underline"><Trash2 size={12} /> remove</button>
+          <button onClick={remove} className="inline-flex items-center gap-1 text-bad hover:underline"><Trash2 size={12} /> remove</button>
         </span>
       </div>
-      {err && <p className="mt-2 text-xs text-[#a4262c]">{err}</p>}
+      {err && <p className="mt-2 text-xs text-bad">{err}</p>}
     </Card>
   );
 }
@@ -156,9 +156,9 @@ function AddContract({ onDone }: { onDone: () => void }) {
           e.preventDefault();
           setFile([...e.dataTransfer.files].find((f) => f.name.toLowerCase().endsWith(".pdf")) ?? null);
         }}
-        className="flex cursor-pointer flex-col items-center gap-1 rounded border border-dashed border-[#c8c6c4] px-4 py-6 text-center text-sm text-ink-2 hover:border-[#2a78d6]"
+        className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-dashed border-line-strong px-4 py-6 text-center text-sm text-ink-2 hover:border-primary-deep"
       >
-        {file ? <FilePlus2 size={22} className="text-[#2a78d6]" /> : <Upload size={22} />}
+        {file ? <FilePlus2 size={22} className="text-link" /> : <Upload size={22} />}
         {file ? file.name : "Drop a partner's master agreement (or the purchasing guideline) as PDF, or click"}
         <input ref={input} type="file" accept="application/pdf" hidden onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
       </div>
@@ -168,13 +168,13 @@ function AddContract({ onDone }: { onDone: () => void }) {
           value={terms}
           onChange={(e) => setTerms(e.target.value)}
           placeholder="auto-detected: contract number / company name"
-          className="mt-1 w-full rounded border border-line px-2 py-1.5 text-sm"
+          className="mt-1 w-full rounded-xl border border-line px-2 py-1.5 text-sm"
         />
       </label>
       <button
         onClick={submit}
         disabled={!file || state.busy}
-        className="mt-3 w-full rounded bg-[#2a78d6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#256abf] disabled:opacity-50"
+        className="mt-3 w-full btn-primary px-4 py-2 text-sm font-semibold"
       >
         {state.busy ? "Reading contract…" : "Add to library"}
       </button>
@@ -182,8 +182,8 @@ function AddContract({ onDone }: { onDone: () => void }) {
         The contract number and parties are read automatically. Invoices and POs quoting that number are linked to this contract.
         Search indexes are built once, the first time a linked package is verified.
       </p>
-      {state.ok && <p className="mt-2 text-xs font-semibold text-[#107c10]">{state.ok}</p>}
-      {state.err && <p className="mt-2 text-xs text-[#a4262c]">{state.err}</p>}
+      {state.ok && <p className="mt-2 text-xs font-semibold text-good">{state.ok}</p>}
+      {state.err && <p className="mt-2 text-xs text-bad">{state.err}</p>}
     </Card>
   );
 }

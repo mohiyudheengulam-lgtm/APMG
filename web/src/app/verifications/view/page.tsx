@@ -60,7 +60,7 @@ function VerificationDetail() {
         }
       />
       {(a.notes?.length || a.extraction_check?.status === "uncertain") && (
-        <div className="mb-4 rounded border border-[#f2d38a] bg-[#fff8e1] px-4 py-2 text-sm text-[#8a6d00]">
+        <div className="mb-4 rounded-xl border border-warn-line bg-warn-soft px-4 py-2 text-sm text-warn">
           {a.notes?.map((n) => <div key={n}>⚠ {n}</div>)}
           {a.extraction_check?.checks
             .filter((c) => !c.ok)
@@ -90,7 +90,7 @@ function VerificationDetail() {
             <Findings findings={a.findings} onOpen={(name, page) => setDoc({ name, page })} />
             <div className="mt-4">
               {a.manager_decision ? (
-                <div className="rounded border border-line bg-[#faf9f8] p-3 text-sm">
+                <div className="rounded-xl border border-line bg-surface p-3 text-sm">
                   <b>{a.manager_decision.decision}</b> by {a.manager_decision.reviewer} · {when(a.manager_decision.timestamp)}
                   {a.manager_decision.override_reason && <div className="text-ink-2">“{a.manager_decision.override_reason}”</div>}
                 </div>
@@ -106,7 +106,7 @@ function VerificationDetail() {
                 <button
                   key={t}
                   onClick={() => setTab(t)}
-                  className={`-mb-px border-b-2 px-3 py-1.5 text-[13px] ${tab === t ? "border-accent font-semibold text-ink" : "border-transparent text-ink-2 hover:text-ink"}`}
+                  className={`-mb-px border-b-2 px-3 py-1.5 text-[13px] ${tab === t ? "border-ink font-semibold text-ink" : "border-transparent text-ink-2 hover:text-ink"}`}
                 >
                   {t}
                 </button>
@@ -145,12 +145,12 @@ function VerificationDetail() {
               (a.cited_clauses.length ? (
                 <ul className="flex flex-col gap-2 text-[13px]">
                   {a.cited_clauses.map((c, i) => (
-                    <li key={i} className="rounded border border-line p-2">
+                    <li key={i} className="rounded-xl border border-line p-2">
                       <div className="flex items-center justify-between">
                         <b>{c.label}</b>
-                        <span className={`text-xs font-semibold ${c.allowed ? "text-[#107c10]" : "text-[#a4262c]"}`}>{c.allowed ? "judged allowed" : "judged not allowed"}</span>
+                        <span className={`text-xs font-semibold ${c.allowed ? "text-good" : "text-bad"}`}>{c.allowed ? "judged allowed" : "judged not allowed"}</span>
                       </div>
-                      <button onClick={() => setDoc({ name: c.document, page: c.page })} className="text-xs text-[#2a78d6] hover:underline">
+                      <button onClick={() => setDoc({ name: c.document, page: c.page })} className="text-xs text-link hover:underline">
                         {c.document} · page {c.page}
                       </button>
                       <p className="mt-1 text-xs text-ink-2">{c.reason}</p>
@@ -174,7 +174,7 @@ function VerificationDetail() {
                 <button
                   key={d}
                   onClick={() => setDoc({ name: d, page: 1 })}
-                  className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] ${viewer?.name === d ? "border-[#2a78d6] text-[#2a78d6]" : "border-line text-ink-2"}`}
+                  className={`inline-flex items-center gap-1 rounded-xl border px-1.5 py-0.5 text-[11px] ${viewer?.name === d ? "border-primary-deep text-link" : "border-line text-ink-2"}`}
                 >
                   <FileText size={11} /> {d}
                 </button>
@@ -187,7 +187,7 @@ function VerificationDetail() {
               <p className="mb-2 text-xs text-ink-2">
                 {viewer.name} · page {viewer.page}
               </p>
-              <iframe key={`${viewer.name}-${viewer.page}`} src={pdfUrl(pkg, viewer.name, viewer.page)} className="h-[72vh] w-full rounded border border-line bg-white" />
+              <iframe key={`${viewer.name}-${viewer.page}`} src={pdfUrl(pkg, viewer.name, viewer.page)} className="h-[72vh] w-full rounded-xl border border-line bg-white" />
             </>
           ) : (
             <p className="text-sm text-ink-2">Click an evidence reference to open the cited page.</p>
