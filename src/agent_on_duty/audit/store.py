@@ -110,17 +110,34 @@ class RecommendationWriter:
 
 def approve(db_path: Path, verification_id: str, decision: Decision, reviewer: str,
             override_reason: str | None = None) -> ManagerDecision:
-    """Manager approval function — the only code path that records a final decision."""
+    """Manager approval function — the only code path that records a final decision.
+
+    override_reason is required when:
+    - decision is OVERRIDDEN (always — also enforced by DB CHECK constraint)
+    - decision is APPROVED but the verification has flags (Supervised Meeting 5: managers must
+      comment when confirming a flagged item, to create an auditable justification)
+    """
+    if not (reviewer or "").strip():
+        raise ValueError("reviewer identity is required")
     if decision == Decision.OVERRIDDEN and not (override_reason or "").strip():
         raise ValueError("an override needs a written reason")
     md = ManagerDecision(decision=decision, reviewer=reviewer, timestamp=datetime.now(timezone.utc),
                          override_reason=override_reason)
     with connect(db_path) as con:
-        row = con.execute("SELECT audit_path, review_state FROM verifications WHERE id = ?", (verification_id,)).fetchone()
+        row = con.execute("SELECT audit_path, review_state, recommendation FROM verifications WHERE id = ?",
+                          (verification_id,)).fetchone()
         if row is None:
             raise KeyError(verification_id)
         if row["review_state"] == ReviewState.REVIEWED:
             raise ValueError("already reviewed")
+        # Managers must provide a reason when confirming a flagged verification (audit trail requirement)
+        rec_label = row["recommendation"] or ""
+        is_flagged = rec_label and rec_label != "NO_DISCREPANCY"
+        if decision == Decision.APPROVED and is_flagged and not (override_reason or "").strip():
+            raise ValueError(
+                f"this verification has flags ({rec_label}); an approval comment is required "
+                "explaining why the flagged items are acceptable"
+            )
         con.execute("INSERT INTO decisions VALUES (?, ?, ?, ?, ?)",
                     (verification_id, md.decision.value, md.reviewer, md.timestamp.isoformat(), md.override_reason))
         con.execute("UPDATE verifications SET review_state = 'REVIEWED' WHERE id = ?", (verification_id,))

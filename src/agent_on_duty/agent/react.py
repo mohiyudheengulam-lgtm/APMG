@@ -3,9 +3,27 @@
 The model reads documents through the active retrieval path, submits the values it extracted,
 and calls deterministic tools for every calculation. Its only output is a Recommendation —
 it has no access to the decision store (§5.4).
+
+ReAct was chosen over alternative agentic patterns (LangGraph, CoT-only, plain tool-calling) for
+three reasons specific to this problem:
+
+1. Dynamic document navigation — the agent must decide at runtime which documents to retrieve
+   next based on what it has already seen (e.g. "invoice has a surcharge → retrieve MSA clause").
+   Pure chain-of-thought or single-pass tool-calling cannot adapt mid-run; LangGraph would require
+   a pre-defined graph of all possible branching paths, which is brittle for open-ended document sets.
+
+2. Reproducible benchmarking — Path A and Path B must be identical in every dimension except the
+   retrieval call. A framework adds its own state management and prompt injections that are hard to
+   hold constant across paths. Writing the loop explicitly guarantees that the only variable is
+   the retrieval mechanism (§3 Research Design).
+
+3. Step-budget enforcement — the 10-step cap and the compaction strategy (see _compact) must be
+   observable and auditable. An in-house loop makes every token visible in the audit JSON;
+   a framework would require unwrapping its internals to achieve the same transparency.
 """
 
 import json
+import os
 import re
 import time
 from collections.abc import Callable
@@ -24,8 +42,18 @@ from agent_on_duty.schemas import (
 )
 from agent_on_duty.tools.calc import line_total_variance, price_variance, quantity_variance, unmatched_lines
 
-MODEL = "qwen3:1.7b"
-RUN_OPTIONS = {"temperature": 0, "seed": 42, "num_ctx": 16384}
+BENCHMARK_MODEL = "qwen3:1.7b"  # the exposé's model; results only count with this one
+# AOD_MODEL picks a smaller/faster model for development (e.g. qwen3.5:0.8b); never for benchmark results
+MODEL = os.environ.get("AOD_MODEL") or BENCHMARK_MODEL
+# AOD_TEMPERATURE overrides temperature for ablation runs (e.g. AOD_TEMPERATURE=0.2 uv run python scripts/run_benchmark.py --tag bench_t02)
+# Default is 0 (deterministic); supervisor recommendation: test 0.2 and 0.3 (Supervised Meeting 5)
+_temperature = float(os.environ.get("AOD_TEMPERATURE", "0"))
+# num_predict caps one reply: tool calls need a few hundred tokens; without a cap a repetition loop at temperature 0
+# runs until the context is full (minutes per turn)
+RUN_OPTIONS = {"temperature": _temperature, "seed": 42, "num_ctx": 16384, "num_predict": 2048}
+# Compact retrieval results when prompt token usage exceeds this fraction of num_ctx to prevent context overflow
+# (Supervised Meeting 5: small models have ~32k context; tool results can fill it quickly)
+TOKEN_COMPACT_RATIO = 0.75
 THINK = False
 MAX_STEPS = 10
 
@@ -52,9 +80,10 @@ Procedure:
 5. Call finish.
 Never output plain text. Every response must contain at least one tool call."""
 
-_PATH_A_RETRIEVAL = ("Use `search` to retrieve the invoice, purchase order, and goods receipt: one search per "
-                     "document, with words you expect in it. If the results do not show that document's line items, "
-                     "search again with different words. Search is by meaning: filenames do not find documents.")
+_PATH_A_RETRIEVAL = ("Use `search` with scope='package' to retrieve the invoice, purchase order, and goods "
+                     "receipt: one search per document, with words you expect in it. If the results do not show "
+                     "that document's line items, search again with different words. Search is by meaning: "
+                     "filenames do not find documents. For the MSA use scope='contract'.")
 
 _PATH_B_RETRIEVAL = ("Use `read` with paths=['invoice.md', 'purchase_order.md', 'goods_receipt.md'] "
                      "to open all three at once.")
@@ -78,8 +107,8 @@ Procedure:
 Never output plain text. Every response must contain at least one tool call."""
 
 SYSTEM_PROMPT_ASSISTED_A = _SYSTEM_PROMPT_ASSISTED.format(
-    retrieval_step="use `search` with words about surcharges to find the surcharge clause in the master supply "
-                   "agreement (MSA).")
+    retrieval_step="use `search` with scope='contract' and words about surcharges to find the surcharge clause "
+                   "in the master supply agreement (MSA).")
 SYSTEM_PROMPT_ASSISTED_B = _SYSTEM_PROMPT_ASSISTED.format(
     retrieval_step="use `read` to open 'msa/index.md', then read the section file it links for surcharges.")
 
@@ -160,6 +189,9 @@ class CheckSurchargeArgs(BaseModel):
 
 class SearchArgs(BaseModel):
     query: str
+    scope: Literal["package", "contract"] | None = Field(
+        default=None, description="'package': invoice, purchase order, delivery note, goods receipt; "
+                                  "'contract': master supply agreement (MSA) and purchasing guideline")
 
 
 class ReadArgs(BaseModel):
@@ -213,28 +245,31 @@ ASSISTED_TOOLS = {"check_surcharge", "finish"}
 
 class PathATools:
     name = "A"
-    tools = [_tool("search", "Semantic search over all package documents. Returns the 5 most similar text chunks "
+    tools = [_tool("search", "Semantic search over the package documents (scope='package') or the contracts "
+                   "(scope='contract'). Returns the 5 most similar text chunks "
                    "with their document and page.", SearchArgs)]
 
-    hint = ("Search with words from the text you need (e.g. the clause topic); "
-            "a search for a filename or document number does not find the document.")
+    hint = ("Search with words from the text you need (e.g. the clause topic), scope='package' for invoice, PO and "
+            "goods receipt, scope='contract' for the MSA; a search for a filename or document number does not find "
+            "the document.")
 
     def __init__(self, index: PathAIndex):
         self.index = index
         self.last_texts: dict[str, str] = {}  # document -> text revealed by the last call
-        self._queries: set[str] = set()
+        self._queries: set[tuple[str, str | None]] = set()
 
     def resolve_document(self, name: str) -> str:
         return name
 
     def call(self, name: str, args: dict) -> tuple[str, set[tuple[str, int]]]:
-        query = SearchArgs(**args).query
-        chunks = self.index.search(query)
+        a = SearchArgs(**args)
+        query = a.query
+        chunks = self.index.search(query, scope=a.scope)
         text = "\n\n".join(f"[source: {c.document} page {c.page}]\n{c.text}" for c in chunks)
-        if query.strip().lower() in self._queries:  # identical query -> identical results; say so instead of looping
+        if (query.strip().lower(), a.scope) in self._queries:  # identical query -> identical results; say so instead of looping
             text = ("Note: you already searched for this; the results are the same. "
                     "Use different words if you need other text.\n\n" + text)
-        self._queries.add(query.strip().lower())
+        self._queries.add((query.strip().lower(), a.scope))
         self.last_texts = {}
         for c in chunks:
             self.last_texts[c.document] = self.last_texts.get(c.document, "") + "\n" + c.text
@@ -351,6 +386,7 @@ class Verifier:
         self.done = False
         self._last_seen: set[tuple[str, int]] = set()
         self.precheck = ""
+        self._error_streak: dict[str, int] = {}  # tool_name -> consecutive validation error count
         if assisted is not None:
             self._preload(assisted)
 
@@ -563,22 +599,39 @@ class Verifier:
                 for doc, t in getattr(self.retrieval, "last_texts", {}).items():
                     self.texts[doc] = self.texts.get(doc, "") + t
                 self._last_seen = seen
+                self._error_streak[name] = 0
                 return text
             match name:
                 case "submit_document":
-                    return self.submit_document(SubmitDocumentArgs(**args))
+                    result = self.submit_document(SubmitDocumentArgs(**args))
                 case "report_missing":
-                    return self.report_missing(ReportMissingArgs(**args))
+                    result = self.report_missing(ReportMissingArgs(**args))
                 case "check_surcharge":
-                    return self.check_surcharge(CheckSurchargeArgs(**args))
+                    result = self.check_surcharge(CheckSurchargeArgs(**args))
                 case "run_checks":
-                    return self.run_checks()
+                    result = self.run_checks()
                 case "finish":
-                    return self.finish()
-            raise ValueError(f"unknown tool {name}")
+                    result = self.finish()
+                case _:
+                    raise ValueError(f"unknown tool {name}")
+            self._error_streak[name] = 0
+            return result
         except (ValidationError, ValueError, FileNotFoundError, TypeError) as e:
             self.run.invalid_tool_calls += 1
-            return f"Error: invalid call to {name}: {str(e)[:400]}"
+            streak = self._error_streak.get(name, 0) + 1
+            self._error_streak[name] = streak
+            msg = str(e)[:400]
+            if streak >= 3:
+                # Escalate: give the model the full tool schema so it can self-correct
+                schema = next((t["function"]["parameters"] for t in (self.retrieval.tools + COMMON_TOOLS)
+                               if t["function"]["name"] == name), None)
+                hint = (f" [This tool has failed {streak} times in a row. Required schema: "
+                        f"{json.dumps(schema, separators=(',', ':'))[:300]}]") if schema else ""
+                return f"Error: invalid call to {name}: {msg}.{hint}"
+            if streak == 2:
+                return (f"Error: invalid call to {name}: {msg}. "
+                        f"[Second consecutive error — check the required argument names and types.]")
+            return f"Error: invalid call to {name}: {msg}"
 
     def _task(self) -> str:
         """First message — identical for both paths: the package's files and their detected document types."""
@@ -607,17 +660,27 @@ class Verifier:
         """Documents whose content the agent has already turned into submissions or citations."""
         return {v["document"] for v in self.run.submitted.values()} | {c["document"] for c in self.run.cited_clauses}
 
-    def _compact(self, messages: list[dict], retrieved: list[dict], step: int):
-        """Replace old or fully used retrieval results with a one-line note (same rule for both paths)."""
+    def _compact(self, messages: list[dict], retrieved: list[dict], step: int, prompt_tokens: int = 0):
+        """Replace old or fully used retrieval results with a one-line note (same rule for both paths).
+
+        Normal compaction: compact when docs are consumed or the result is COMPACT_AFTER_STEPS old.
+        Token-pressure compaction: when prompt tokens exceed TOKEN_COMPACT_RATIO of num_ctx, compact
+        everything still uncompacted to prevent context overflow (Supervised Meeting 5 requirement).
+        """
         consumed = self._consumed()
+        ctx_limit = RUN_OPTIONS.get("num_ctx", 16384)
+        token_pressure = prompt_tokens > 0 and prompt_tokens >= ctx_limit * TOKEN_COMPACT_RATIO
         for r in retrieved:
             if r["compacted"]:
                 continue
             docs = {d for d, _ in r["seen"] if not d.endswith(".md")}  # exclude concept paths from compaction check
-            if (docs and docs <= consumed) or step - r["step"] >= COMPACT_AFTER_STEPS:
+            age_expired = step - r["step"] >= COMPACT_AFTER_STEPS
+            docs_consumed = docs and docs <= consumed
+            if docs_consumed or age_expired or token_pressure:
                 where = ", ".join(f"{d} p.{p}" for d, p in sorted(r["seen"])) or "nothing citable"
+                reason = "token pressure" if token_pressure and not docs_consumed and not age_expired else "consumed/aged"
                 messages[r["index"]]["content"] = (f"[Earlier {r['tool']} result for {r['args']} removed to keep the context "
-                                                   f"small ({where}). Retrieve it again if you still need it.]")
+                                                   f"small ({where}, {reason}). Retrieve it again if you still need it.]")
                 r["compacted"] = True
                 self.run.compactions += 1
 
@@ -654,7 +717,7 @@ class Verifier:
                     if c.function.name in retrieval_tools and not result.startswith("Error"):
                         retrieved.append({"index": len(messages) - 1, "step": step, "tool": c.function.name,
                                           "args": json.dumps(args)[:120], "seen": set(self._last_seen), "compacted": False})
-                self._compact(messages, retrieved, step)
+                self._compact(messages, retrieved, step, prompt_tokens=resp.prompt_eval_count or 0)
                 record.seconds = round(time.perf_counter() - t0, 3)
                 self.run.steps.append(record)
                 if on_step:
