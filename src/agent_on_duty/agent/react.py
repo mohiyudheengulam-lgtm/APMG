@@ -463,7 +463,8 @@ class Verifier:
         if a.doc_type == "goods_receipt":  # only the received quantity counts; drop prices the model may add
             a.lines = [ln.model_copy(update={"unit_price": None, "line_total": None}) for ln in a.lines]
         self._require_printed(doc, a)
-        ref = SourceRef(document=doc, page=1)
+        pages = sorted(p for d, p in self.seen if d == doc)
+        ref = SourceRef(document=doc, page=pages[0] if pages else 1)
         lines = [LineItem(item_no=ln.item_no, description="", quantity=ln.quantity, unit_price=ln.unit_price,
                           line_total=ln.line_total, source=ref) for ln in a.lines]
         if a.doc_type == "invoice":
