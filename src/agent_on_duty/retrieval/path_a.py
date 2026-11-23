@@ -38,8 +38,27 @@ def chunk_segment(text: str) -> list[str]:
         start = end - OVERLAP
  
  
+class OllamaUnavailableError(RuntimeError):
+    """Ollama can't make embeddings: it isn't running, or the embedding model isn't downloaded."""
+ 
+ 
+OLLAMA_NOT_RUNNING = ("Ollama isn't running, so Path A can't search the documents. "
+                      "Start the Ollama app (or run 'ollama serve' in a terminal), then try again.")
+MODEL_MISSING = (f"The embedding model '{EMBED_MODEL}' isn't downloaded in Ollama. "
+                 f"Run 'ollama pull {EMBED_MODEL}' in a terminal, then try again.")
+ 
+ 
 def _embed(texts: list[str], prefix: str) -> np.ndarray:
-    vecs = np.array(ollama.embed(model=EMBED_MODEL, input=[prefix + t for t in texts]).embeddings, dtype="float32")
+    try:
+        resp = ollama.embed(model=EMBED_MODEL, input=[prefix + t for t in texts])
+    except ConnectionError:
+        # "from None" drops the long httpx traceback; the message says what to do.
+        raise OllamaUnavailableError(OLLAMA_NOT_RUNNING) from None
+    except ollama.ResponseError as e:
+        if e.status_code == 404:
+            raise OllamaUnavailableError(MODEL_MISSING) from None
+        raise
+    vecs = np.array(resp.embeddings, dtype="float32")
     faiss.normalize_L2(vecs)
     return vecs
  
