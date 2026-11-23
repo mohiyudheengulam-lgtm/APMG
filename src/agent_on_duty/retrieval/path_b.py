@@ -35,14 +35,28 @@ def _slug(title: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_")
 
 
+ACRONYMS = {"po": "PO", "vat": "VAT", "msa": "MSA", "esd": "ESD", "id": "ID"}
+
+
+def _label(field: str) -> str:
+    """'po_number' -> 'PO Number' (str.title() would give 'Po Number')."""
+    return " ".join(ACRONYMS.get(w, w.capitalize()) for w in field.split("_"))
+
+
+def _title(text: str) -> str:
+    """Title-case an ALL-CAPS clause heading without the str.title() apostrophe bug (Buyer'S -> Buyer's)."""
+    return re.sub(r"(?<=[’'])S\b", "s", text.title())
+
+
 def _record_concept(doc: ExtractedDocument, links: list[tuple[str, str]]) -> str:
     rec = doc.record
     priced = doc.doc_type in (DocType.INVOICE, DocType.PURCHASE_ORDER)
+    pages = [p.page for p in doc.pages] or [1]
     meta = {"type": doc.doc_type.value, "title": f"{TITLES[doc.doc_type]} {doc.filename.removesuffix('.pdf')}",
-            "source_document": doc.filename, "page": 1, "pages": [1]}
+            "source_document": doc.filename, "page": pages[0], "pages": pages}
     body = [f"# {meta['title']}", "", f"**Source file (use as `document` field):** {doc.filename}", ""]
-    header = {k: v for k, v in rec.model_dump(exclude={"lines", "surcharges", "source"}).items() if v is not None}
-    body += [f"- **{k.replace('_', ' ').title()}:** {v}" for k, v in header.items()] + [""]
+    header = {k: v for k, v in rec.model_dump(exclude={"lines", "surcharges", "source"}).items() if v not in (None, "")}
+    body += [f"- **{_label(k)}:** {v}" for k, v in header.items()] + [""]
     if priced:
         body += ["| Item | Description | Qty | Unit Price | Line Total |", "|---|---|---|---|---|"]
         body += [f"| {ln.item_no} | {ln.description} | {ln.quantity} | {ln.unit_price} | {ln.line_total} |" for ln in rec.lines]
@@ -81,7 +95,7 @@ def _msa_sections(doc: ExtractedDocument) -> list[dict]:
             if toc:
                 pass
             elif m := NUMBERED_RE.match(ln):
-                head = (m.group(1), m.group(2).title())
+                head = (m.group(1), _title(m.group(2)))
             elif (m := PARAGRAPH_RE.match(ln)) and i + 1 < len(lines) and lines[i + 1]:
                 head = (f"§ {m.group(1)}", lines[i + 1])
                 i += 1
@@ -279,7 +293,6 @@ class PathBBundle:
         if not target.exists() or target.suffix != ".md":
             available = "index.md, invoice.md, purchase_order.md, delivery_note.md, goods_receipt.md, guideline.md, msa/index.md"
             raise FileNotFoundError(f"{path} — use concept filenames or start with index.md. Available: {available}")
-            raise FileNotFoundError(path)
         return target.read_text(encoding="utf-8")
 
     def meta(self, path: str) -> dict:
