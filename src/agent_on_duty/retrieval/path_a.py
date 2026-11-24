@@ -97,12 +97,15 @@ class PathAIndex:
 
 
 class MultiIndex:
-    """A package index plus its linked contract indexes, searched as one: global top-k by inner product."""
+    """A package index (first) plus its linked contract indexes: global top-k by inner product.
+    `scope` limits the search to the package documents or to the contract library; without it both are searched,
+    and the long contracts tend to crowd the one-page invoice, PO and goods receipt out of the top-k."""
 
     def __init__(self, indexes: list[PathAIndex]):
         self.indexes = indexes
 
-    def search(self, query: str, k: int = TOP_K) -> list[Chunk]:
+    def search(self, query: str, k: int = TOP_K, scope: str | None = None) -> list[Chunk]:
         qvec = _embed([query], "search_query: ")
-        hits = [h for ix in self.indexes for h in ix.search_scored(qvec, k)]
+        indexes = {"package": self.indexes[:1], "contract": self.indexes[1:]}.get(scope, self.indexes)
+        hits = [h for ix in indexes for h in ix.search_scored(qvec, k)]
         return [c for _, c in sorted(hits, key=lambda h: -h[0])[:k]]

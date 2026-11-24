@@ -6,7 +6,9 @@ import threading
 import urllib.request
 import webbrowser
 
-MODELS = ("qwen3:1.7b", "nomic-embed-text")
+from agent_on_duty.agent.react import MODEL
+
+MODELS = (MODEL, "nomic-embed-text")
 
 
 def _ollama_models(base: str) -> list[str] | None:

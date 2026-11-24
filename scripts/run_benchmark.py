@@ -21,7 +21,7 @@ from pathlib import Path
 import ollama
 
 from agent_on_duty import pipeline
-from agent_on_duty.agent.react import MAX_STEPS, MODEL, RUN_OPTIONS, THINK
+from agent_on_duty.agent.react import BENCHMARK_MODEL, MAX_STEPS, MODEL, RUN_OPTIONS, THINK
 from agent_on_duty.audit.store import RecommendationWriter
 from agent_on_duty.retrieval.path_a import EMBED_MODEL
 
@@ -86,6 +86,9 @@ def main():
     if ollama_num_parallel() != "1" and not args.allow_parallel:
         sys.exit("OLLAMA_NUM_PARALLEL is not 1 (Exposé §6.2). See SETUP.md (Ollama settings), restart Ollama, "
                  "then retry — or pass --allow-parallel for a non-final run.")
+    if MODEL != BENCHMARK_MODEL:
+        print(f"NOTE: AOD_MODEL={MODEL} — a development run, not a benchmark result (the exposé fixes "
+              f"{BENCHMARK_MODEL}). The model is recorded in the manifest.")
 
     pkgs = sorted(p for p in args.data.iterdir() if p.is_dir() and (not args.packages or p.name in args.packages))
     args.packages = [p.name for p in pkgs]
